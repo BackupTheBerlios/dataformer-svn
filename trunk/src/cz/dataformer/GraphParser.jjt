@@ -1,0 +1,115 @@
+/**
+ * JavaCC file
+ */
+ 
+options {
+  JDK_VERSION = "1.5";
+  STATIC = false;
+  MULTI=true;
+  VISITOR=true;
+  VISITOR_EXCEPTION = "VisitorException";
+}
+PARSER_BEGIN(GraphParser)
+package cz.dataformer;
+public class GraphParser {
+	private String debugField;
+}
+PARSER_END(GraphParser)
+
+// public record <recordname> {
+// int a(10);
+// int b("|")
+// }
+
+SKIP : { " "|"\r"|"\t"|"\n"|"\f" }
+
+TOKEN: { < #LETTER_OR_UNDERSCORE: (["a"-"z", "A"-"Z", "_"])+ > }
+TOKEN: { < #LETTERS_OR_DIGITS_OR_UNDERSCORES: (["a"-"z", "A"-"Z", "0"-"9", "_"])+ > }
+TOKEN: { < #DIGIT: ["0"-"9"] > }
+TOKEN: { < #APOSTROPHE: "\""> }
+
+TOKEN: { < LBRACE: "{" > }
+TOKEN: { < RBRACE: "}" > }
+
+TOKEN: { < SEMICOLON: ";" > }
+
+TOKEN: { < INTEGER: "int" > }
+TOKEN: { < BOOLEAN: "boolean" > }
+
+TOKEN: { < NUMBER: (<DIGIT>)+ > }
+TOKEN: { < STRING :
+      "\""
+      (   (~["\"","\\","\n","\r"])
+        | ("\\"
+            ( ["n","t","b","r","f","\\","'","\""]
+            | ["0"-"7"] ( ["0"-"7"] )?
+            | ["0"-"3"] ["0"-"7"] ["0"-"7"]
+            )
+          )
+      )*
+      "\""
+  	>
+  }
+
+TOKEN : { < VISIBILITY: "public" | "private" > }
+TOKEN : { < RECORD : "record" > }
+
+TOKEN : { < IDENTIFIER: <LETTER_OR_UNDERSCORE> (<LETTERS_OR_DIGITS_OR_UNDERSCORES>)+ > }
+//TOKEN : { < SIZE: <STRING> | <NUMBER> > }
+
+// TOKEN : { <FIELD_IDENT: <PRIMITIVE_TYPE> <IDENTIFIER><LEFT_PAREN><SIZE><RIGHT_PAREN><SEMICOLON> > }
+			
+
+//TOKEN : { < RECORD_DECLARATION: (<VISIBILITY>)? "record" <IDENTIFIER>//			<LEFT_BRACE>//			( <FIELD_IDENT> )+//			<RIGHT_BRACE>//		  >//}
+
+
+void RecordDeclaration() : {
+	Token tok;
+}
+{
+	<VISIBILITY>
+	"record"
+	tok = <IDENTIFIER>
+	{ 
+		jjtThis.name = tok.image;
+	}
+	<LBRACE>
+		(FieldDeclaration() ";")+
+	<RBRACE>		
+}
+
+
+void FieldDeclaration() #void: 
+{
+	Token dataType;
+	Token identifier;
+	Token delimiter;
+	Token size;
+} 
+{
+	(dataType = <INTEGER> | dataType = <BOOLEAN> ) 
+	
+	identifier = <IDENTIFIER>
+	
+	 "(" ( 
+	 	(size = <NUMBER>
+		 	{ 
+		 	  jjtThis.type = dataType.kind; 
+		 	  jjtThis.name = identifier.image;
+		 	  jjtThis.length = Integer.parseInt(size.image);
+			}	 
+	 	) #FixedRecordField() 
+	 	| 
+	 	(delimiter = <STRING>
+		 	{ 
+		 	  jjtThis.type = dataType.kind; 
+		 	  jjtThis.name = identifier.image;
+		 	  jjtThis.delimiter = delimiter.image;
+			} 
+	 	) #DelimitedRecordField()
+	 	 ) ")"
+	
+}
+
+
+
