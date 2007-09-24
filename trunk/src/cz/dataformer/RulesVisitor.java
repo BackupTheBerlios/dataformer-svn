@@ -98,4 +98,19 @@ public class RulesVisitor extends FileWriterVisitor implements GraphParserVisito
 		return null;
 	}
 
+	public Object visit(ASTTransformation node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTComponentDeclaration node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTComponentConnection node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

@@ -12,12 +12,13 @@ public class GraphRunner {
 	public static void main(String[] args) {
 		try {
 			GraphParser parser = new GraphParser(
-					new FileInputStream("C:/Local/eclipse/workspace/DataFormer/src/record.meta"));
-			parser.RecordDeclaration();
+					new FileInputStream("C:/Local/eclipse/workspace/DataFormer/src/GraphDefinition.def"));
+//			parser.RecordDeclaration();
+			parser.Transformation();
 			((SimpleNode)parser.jjtree.rootNode()).dump("");
-			RecordParserGenerator gen = new RecordParserGenerator("cz.dataformer.metadata",
-					(ASTRecordDeclaration)parser.jjtree.rootNode());
-			gen.generateRecordParser();
+//			RecordParserGenerator gen = new RecordParserGenerator("cz.dataformer.metadata",
+//					(ASTRecordDeclaration)parser.jjtree.rootNode());
+//			gen.generateRecordParser();
 		} catch (FileNotFoundException e) {
 			System.err.println("Input file not found:" + e.getMessage());
 		} catch (ParseException e) {
@@ -25,10 +26,11 @@ public class GraphRunner {
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} catch (VisitorException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		} 
+//		catch (VisitorException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 		
 	}
 

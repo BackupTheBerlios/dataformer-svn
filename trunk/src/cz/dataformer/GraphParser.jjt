@@ -8,6 +8,7 @@ options {
   MULTI=true;
   VISITOR=true;
   VISITOR_EXCEPTION = "VisitorException";
+  DEBUG_PARSER=true;
 }
 PARSER_BEGIN(GraphParser)
 package cz.dataformer;
@@ -35,7 +36,6 @@ TOKEN: { < SEMICOLON: ";" > }
 
 TOKEN: { < INTEGER: "int" > }
 TOKEN: { < BOOLEAN: "boolean" > }
-
 TOKEN: { < NUMBER: (<DIGIT>)+ > }
 TOKEN: { < STRING :
       "\""
@@ -51,8 +51,15 @@ TOKEN: { < STRING :
   	>
   }
 
+TOKEN : {
+  < RECORD : "record" >
+| < TRANSFORMATION : "transformation" > 
+| < COMPONENT : "component" >
+| < GRAPH : "graph" >
+| < CONNECT : "connect" >
+}	
+
 TOKEN : { < VISIBILITY: "public" | "private" > }
-TOKEN : { < RECORD : "record" > }
 
 TOKEN : { < IDENTIFIER: <LETTER_OR_UNDERSCORE> (<LETTERS_OR_DIGITS_OR_UNDERSCORES>)+ > }
 //TOKEN : { < SIZE: <STRING> | <NUMBER> > }
@@ -61,6 +68,32 @@ TOKEN : { < IDENTIFIER: <LETTER_OR_UNDERSCORE> (<LETTERS_OR_DIGITS_OR_UNDERSCORE
 			
 
 //TOKEN : { < RECORD_DECLARATION: (<VISIBILITY>)? "record" <IDENTIFIER>//			<LEFT_BRACE>//			( <FIELD_IDENT> )+//			<RIGHT_BRACE>//		  >//}
+
+void Transformation() : {
+}
+{
+	<VISIBILITY> <TRANSFORMATION> <IDENTIFIER> <LBRACE>
+	( ComponentDeclaration() )*
+	ComponentConnection()
+	<RBRACE>
+	
+}
+
+void ComponentDeclaration() : {
+}
+{
+	<VISIBILITY> <COMPONENT> <IDENTIFIER> <LBRACE>
+	<RBRACE>
+}
+
+void ComponentConnection() : {
+}
+{
+	<GRAPH> <LBRACE>
+	( <CONNECT> <IDENTIFIER> "." <IDENTIFIER> "->" 
+				<IDENTIFIER> "." <IDENTIFIER>) *	
+	<RBRACE>
+}
 
 
 void RecordDeclaration() : {

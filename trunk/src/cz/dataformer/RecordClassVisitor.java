@@ -76,6 +76,21 @@ public class RecordClassVisitor extends FileWriterVisitor implements GraphParser
 		}
 		return data;
 	}
+
+	public Object visit(ASTTransformation node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTComponentDeclaration node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTComponentConnection node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
 	
 		
 }
