@@ -1,0 +1,62 @@
+public transformation MyTransformation {
+
+	public abstract component Filter<T> {
+		in port TypeDefinition input;
+		out port OutPortTypeDefinition validOutput;
+		out port OutPortTypeDefinition invalidOutput;
+		
+		
+		abstract boolean testCondition(T record);
+		
+		main {
+			while (record << in) {
+				if (testCondition(record)) {
+					record >> validOutput;
+				} else {
+					record >> invalidOutput;
+				}
+			}
+		}
+	}
+
+
+	public component LessThanThreeFilter	
+	
+	public abstract component Reader<T> {
+		required String fileName;
+		out port T outputPort;
+		
+		protected abstract T parseRecord(final String line);
+		
+		main {
+			BufferedReader rd = new BufferedReader(new FileReader(fileName));
+			String line = null;
+			T parsedRecord = null;
+			while ((line = rd.readLine()) != null) {
+				parsedRecord = parseRecord(line);
+				parsedRecord >> outputPort;
+			}
+		}
+	}
+	
+	public component DelimitedReader<T> extends Reader<T> {
+		property String inputFileName;
+		property String delimiter;
+	
+		
+	
+		private T parseRecord(final String line) {
+			StringTokeninzer tok = new StringTokenizer(delimiter);
+		}
+	}
+	
+	
+	public component Transformer {
+	}
+	
+	graph {
+		connect reader.out -> filter.in
+		connect filter.out -> transformer.in
+		connect transformer.out -> writer.in
+	}
+}
