@@ -3,7 +3,7 @@ package cz.dataformer;
 import java.io.File;
 import java.io.IOException;
 
-public abstract class FileWriterVisitor {
+public abstract class FileWriterVisitor extends GraphParserVisitorImplementation {
 
 	private ClassFileWriter writer;
 	
