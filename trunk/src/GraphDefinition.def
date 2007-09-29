@@ -1,9 +1,10 @@
 public transformation MyTransformation {
 
-	public abstract component Filter<T> {
-		in port TypeDefinition input;
-		out port OutPortTypeDefinition validOutput;
-		out port OutPortTypeDefinition invalidOutput;
+	public abstract component Filter {
+		required property String someProperty;
+		out port <Valid> validOutput;
+		optional in port <Input> input;
+		out port <Invalid> invalidOutput;
 		
 		
 		abstract boolean testCondition(T record);
