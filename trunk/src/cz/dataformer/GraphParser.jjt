@@ -27,15 +27,20 @@ SKIP : { " "|"\r"|"\t"|"\n"|"\f" }
 TOKEN: { < #LETTER_OR_UNDERSCORE: (["a"-"z", "A"-"Z", "_"])+ > }
 TOKEN: { < #LETTERS_OR_DIGITS_OR_UNDERSCORES: (["a"-"z", "A"-"Z", "0"-"9", "_"])+ > }
 TOKEN: { < #DIGIT: ["0"-"9"] > }
-TOKEN: { < #APOSTROPHE: "\""> }
 
-TOKEN: { < LBRACE: "{" > }
-TOKEN: { < RBRACE: "}" > }
 
-TOKEN: { < SEMICOLON: ";" > }
 
-TOKEN: { < INTEGER: "int" > }
-TOKEN: { < BOOLEAN: "boolean" > }
+TOKEN: 
+{ 
+  < LBRACE: "{" > 
+| < RBRACE: "}" >
+| < GT: ">" >
+| < LT: "<" >
+| < SEMICOLON: ";" > 
+| < COMMA: "," >
+| < APOSTROPHE: "\""> 
+}
+
 TOKEN: { < NUMBER: (<DIGIT>)+ > }
 TOKEN: { < STRING :
       "\""
@@ -51,64 +56,213 @@ TOKEN: { < STRING :
   	>
   }
 
-TOKEN : {
-  < RECORD : "record" >
-| < TRANSFORMATION : "transformation" > 
+TOKEN :
+{
+  < ABSTRACT: "abstract" >
+| < ASSERT: "assert" >
+| < BOOLEAN: "boolean" >
+| < BREAK: "break" >
+| < BYTE: "byte" >
+| < CASE: "case" >
+| < CATCH: "catch" >
+| < CHAR: "char" >
+| < CLASS: "class" >
 | < COMPONENT : "component" >
-| < GRAPH : "graph" >
 | < CONNECT : "connect" >
-}	
+| < CONST: "const" >
+| < CONTINUE: "continue" >
+| < _DEFAULT: "default" >
+| < DO: "do" >
+| < DOUBLE: "double" >
+| < ELSE: "else" >
+| < ENUM: "enum" >
+| < EXTENDS: "extends" >
+| < FALSE: "false" >
+| < FINAL: "final" >
+| < FINALLY: "finally" >
+| < FLOAT: "float" >
+| < FOR: "for" >
+| < GOTO: "goto" >
+| < GRAPH : "graph" >
+| < IF: "if" >
+| < IMPLEMENTS: "implements" >
+| < IMPORT: "import" >
+| < IN: "in" >
+| < INSTANCEOF: "instanceof" >
+| < INT: "int" >
+| < INTERFACE: "interface" >
+| < LONG: "long" >
+| < NATIVE: "native" >
+| < NEW: "new" >
+| < NULL: "null" >
+| < OUT: "out" >
+| < OPTIONAL: "optional" >
+| < PACKAGE: "package" >
+| < PORT: "port" >
+| < PRIVATE: "private" >
+| < PROPERTY: "property" >
+| < PROTECTED: "protected" >
+| < PUBLIC: "public" >
+| < RECORD : "record" >
+| < REQUIRED: "required" >
+| < RETURN: "return" >
+| < SHORT: "short" >
+| < STATIC: "static" >
+| < STRICTFP: "strictfp" >
+| < SUPER: "super" >
+| < SWITCH: "switch" >
+| < SYNCHRONIZED: "synchronized" >
+| < THIS: "this" >
+| < THROW: "throw" >
+| < THROWS: "throws" >
+| < TRANSFORMATION : "transformation" > 
+| < TRANSIENT: "transient" >
+| < TRUE: "true" >
+| < TRY: "try" >
+| < VOID: "void" >
+| < VOLATILE: "volatile" >
+| < WHILE: "while" >
+}
 
-TOKEN : { < VISIBILITY: "public" | "private" > }
 
-TOKEN : { < IDENTIFIER: <LETTER_OR_UNDERSCORE> (<LETTERS_OR_DIGITS_OR_UNDERSCORES>)+ > }
-//TOKEN : { < SIZE: <STRING> | <NUMBER> > }
+TOKEN : { < IDENTIFIER: <LETTER_OR_UNDERSCORE> (<LETTERS_OR_DIGITS_OR_UNDERSCORES>)* > }
 
-// TOKEN : { <FIELD_IDENT: <PRIMITIVE_TYPE> <IDENTIFIER><LEFT_PAREN><SIZE><RIGHT_PAREN><SEMICOLON> > }
-			
-
-//TOKEN : { < RECORD_DECLARATION: (<VISIBILITY>)? "record" <IDENTIFIER>//			<LEFT_BRACE>//			( <FIELD_IDENT> )+//			<RIGHT_BRACE>//		  >//}
-
+/*
+ * Transformation declaration
+ */
 void Transformation() : {
 }
 {
-	<VISIBILITY> <TRANSFORMATION> <IDENTIFIER> <LBRACE>
+	Modifiers() "transformation" <IDENTIFIER> "{"
 	( ComponentDeclaration() )*
 	ComponentConnection()
-	<RBRACE>
+	"}"
 	
 }
 
-void ComponentDeclaration() : {
+/*
+ * Transformation component declaration
+ */
+void ComponentDeclaration() : 
+{
 }
 {
-	<VISIBILITY> <COMPONENT> <IDENTIFIER> <LBRACE>
-	<RBRACE>
+	Modifiers() "component" <IDENTIFIER> "{"
+		( 
+		 PortOrPropertyDeclaration()
+	    )*
+	"}"
 }
 
+void PortOrPropertyDeclaration() :
+{
+}
+{
+	Modifiers() ( Port() | Property() )
+}
+
+/*
+ * Components connection into transformation graph
+ */
 void ComponentConnection() : {
 }
 {
-	<GRAPH> <LBRACE>
-	( <CONNECT> <IDENTIFIER> "." <IDENTIFIER> "->" 
+	"graph" "{"
+	( "connect" <IDENTIFIER> "." <IDENTIFIER> "->" 
 				<IDENTIFIER> "." <IDENTIFIER>) *	
-	<RBRACE>
+	"}"
 }
+
+void Port() : 
+{
+}
+{
+	 "port" [ "<" TypeParameter() ">" ] <IDENTIFIER> ";"
+}
+
+void Property() :
+{
+}
+{
+	"property" ClassOrInterfaceType() <IDENTIFIER> ";"
+}
+
+
+
+/*
+ * Modifiers. We match all modifiers in a single rule to reduce the chances of
+ * syntax errors for simple modifier mistakes. It will also enable us to give
+ * better error messages.
+ */
+
+int Modifiers():
+{
+   int modifiers = 0;
+}
+{
+ (
+  LOOKAHEAD(2)
+  (
+   "public" { modifiers |= ModifierSet.PUBLIC; }
+  |
+   "static" { modifiers |= ModifierSet.STATIC; }
+  |
+   "protected" { modifiers |= ModifierSet.PROTECTED; }
+  |
+   "private" { modifiers |= ModifierSet.PRIVATE; }
+  |
+   "final" { modifiers |= ModifierSet.FINAL; }
+  |
+   "abstract" { modifiers |= ModifierSet.ABSTRACT; }
+  |
+   "synchronized" { modifiers |= ModifierSet.SYNCHRONIZED; }
+  |
+   "native" { modifiers |= ModifierSet.NATIVE; }
+  |
+   "transient" { modifiers |= ModifierSet.TRANSIENT; }
+  |
+   "volatile" { modifiers |= ModifierSet.VOLATILE; }
+  |
+   "strictfp" { modifiers |= ModifierSet.STRICTFP; }
+  |
+   "in" { modifiers |= ModifierSet.IN; }
+  |
+   "out" { modifiers |= ModifierSet.OUT; }
+  |
+   "optional" { modifiers |= ModifierSet.OPTIONAL; }
+  |
+   "required" { modifiers |= ModifierSet.REQUIRED; }
+  )
+ )*
+
+ {
+    return modifiers;
+ }
+}
+
+/* 
+* Type parameters as defined in Java 1.5 grammar
+*/
+//void JavaTypeParameters()://{}//{//   "<" TypeParameter() ( "," TypeParameter() )* ">"//}
+
+
+void TypeParameter():{}{   <IDENTIFIER> [ TypeBound() ]}void TypeBound():{}{   "extends" ClassOrInterfaceType() ( "&" ClassOrInterfaceType() )*}void ClassOrInterfaceType():{}{  <IDENTIFIER> [ LOOKAHEAD(2) TypeArguments() ]  ( LOOKAHEAD(2) "." <IDENTIFIER> [ LOOKAHEAD(2) TypeArguments() ] )*}void TypeArguments():{}{   "<" TypeArgument() ( "," TypeArgument() )* ">"}void TypeArgument():{}{//   ReferenceType()// |   "?" //[ WildcardBounds() ]}
+
 
 
 void RecordDeclaration() : {
 	Token tok;
 }
 {
-	<VISIBILITY>
+	Modifiers()
 	"record"
 	tok = <IDENTIFIER>
 	{ 
 		jjtThis.name = tok.image;
 	}
-	<LBRACE>
+	"{"
 		(FieldDeclaration() ";")+
-	<RBRACE>		
+	"}"		
 }
 
 
@@ -120,7 +274,7 @@ void FieldDeclaration() #void:
 	Token size;
 } 
 {
-	(dataType = <INTEGER> | dataType = <BOOLEAN> ) 
+	(dataType = <INT> | dataType = <BOOLEAN> ) 
 	
 	identifier = <IDENTIFIER>
 	
