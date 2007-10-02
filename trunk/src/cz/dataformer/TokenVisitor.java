@@ -47,7 +47,7 @@ public class TokenVisitor extends FileWriterVisitor implements GraphParserVisito
 		HashSet<String> usedTokens = (HashSet<String>)data;
 		try {
 			switch (node.type) {
-			case GraphParserConstants.INTEGER:
+			case GraphParserConstants.INT:
 				StringBuffer buf = new StringBuffer("TOKEN: { < ");
 				String tokenName = "INT" + node.length;
 				if (usedTokens.contains(tokenName)) {
@@ -84,21 +84,4 @@ public class TokenVisitor extends FileWriterVisitor implements GraphParserVisito
 		return data;
 	}
 
-
-	public Object visit(ASTTransformation node, Object data) throws VisitorException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-
-	public Object visit(ASTComponentDeclaration node, Object data) throws VisitorException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-
-	public Object visit(ASTComponentConnection node, Object data) throws VisitorException {
-		// TODO Auto-generated method stub
-		return null;
-	}
 }

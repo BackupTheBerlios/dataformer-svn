@@ -24,7 +24,7 @@ public class RecordField extends SimpleNode {
 	}
 	
 	public String getFieldTypeAsString() {
-		return type == GraphParserConstants.INTEGER ? "int" : "boolean";
+		return type == GraphParserConstants.INT ? "int" : "boolean";
 	}
 
 	

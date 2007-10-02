@@ -2,7 +2,7 @@ package cz.dataformer;
 
 import java.io.IOException;
 
-public class RulesVisitor extends FileWriterVisitor implements GraphParserVisitor {
+public class RulesVisitor extends FileWriterVisitor {
 
 	
 	private ASTRecordDeclaration record;
@@ -47,7 +47,7 @@ public class RulesVisitor extends FileWriterVisitor implements GraphParserVisito
 	public Object visit(ASTFixedRecordField node, Object data) throws VisitorException {
 		try {
 			switch (node.type) {
-			case GraphParserConstants.INTEGER:
+			case GraphParserConstants.INT:
 				writeToken(node.name + "=<INT" + node.length + ">");
 				writeToken("{ jjtThis." + node.name + "=Integer.parseInt("
 						+ node.name + ".image); }");
@@ -73,7 +73,7 @@ public class RulesVisitor extends FileWriterVisitor implements GraphParserVisito
 	public Object visit(ASTDelimitedRecordField node, Object data) throws VisitorException {
 		try {
 			switch (node.type) {
-			case GraphParserConstants.INTEGER:
+			case GraphParserConstants.INT:
 				writeToken(node.name + "=<INT>");
 				writeToken("{ jjtThis." + node.name + "=Integer.parseInt("
 						+ node.name + ".image); }");
@@ -95,21 +95,6 @@ public class RulesVisitor extends FileWriterVisitor implements GraphParserVisito
 			throw new VisitorException("Can't write token", e);
 		}
 		
-		return null;
-	}
-
-	public Object visit(ASTTransformation node, Object data) throws VisitorException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public Object visit(ASTComponentDeclaration node, Object data) throws VisitorException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public Object visit(ASTComponentConnection node, Object data) throws VisitorException {
-		// TODO Auto-generated method stub
 		return null;
 	}
 

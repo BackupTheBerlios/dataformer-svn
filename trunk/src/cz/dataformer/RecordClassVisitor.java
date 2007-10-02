@@ -3,7 +3,7 @@ package cz.dataformer;
 import java.io.File;
 import java.io.IOException;
 
-public class RecordClassVisitor extends FileWriterVisitor implements GraphParserVisitor {
+public class RecordClassVisitor extends FileWriterVisitor {
 
 	private ASTRecordDeclaration record;
 	
@@ -88,6 +88,66 @@ public class RecordClassVisitor extends FileWriterVisitor implements GraphParser
 	}
 
 	public Object visit(ASTComponentConnection node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTModifiers node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTJavaTypeParameters node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTComponentTypeParameters node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTTypeParameter node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTTypeBound node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTClassOrInterfaceType node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTTypeArguments node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTTypeArgument node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTPorts node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTPort node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTProperties node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTProperty node, Object data) throws VisitorException {
 		// TODO Auto-generated method stub
 		return null;
 	}
