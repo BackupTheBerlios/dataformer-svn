@@ -7,7 +7,7 @@ public transformation MyTransformation {
 		out port <Invalid> invalidOutput;
 		
 		
-		abstract boolean testCondition(T record);
+		abstract boolean testCondition(T inputRecord);
 		
 		main {
 			while (record << in) {
