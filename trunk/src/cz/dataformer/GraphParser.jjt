@@ -92,6 +92,7 @@ TOKEN :
 | < INT: "int" >
 | < INTERFACE: "interface" >
 | < LONG: "long" >
+| < MAIN: "main" >
 | < NATIVE: "native" >
 | < NEW: "new" >
 | < NULL: "null" >
@@ -151,14 +152,23 @@ void ComponentDeclaration() :
 		( 
 		 PortOrPropertyDeclaration()
 	    )*
+	  	MainBlock()
 	"}"
 }
 
 void PortOrPropertyDeclaration() :
 {
+	int modifiers = 0;
 }
 {
-	Modifiers() ( Port() | Property() )
+	Modifiers() 
+	( 
+		Port() 
+		| 
+		Property()
+		|
+	  	MethodDeclaration(modifiers)
+  	)
 }
 
 /*
@@ -243,10 +253,134 @@ int Modifiers():
 /* 
 * Type parameters as defined in Java 1.5 grammar
 */
-//void JavaTypeParameters()://{}//{//   "<" TypeParameter() ( "," TypeParameter() )* ">"//}
+void TypeParameters():{}{   "<" TypeParameter() ( "," TypeParameter() )* ">"}
 
 
-void TypeParameter():{}{   <IDENTIFIER> [ TypeBound() ]}void TypeBound():{}{   "extends" ClassOrInterfaceType() ( "&" ClassOrInterfaceType() )*}void ClassOrInterfaceType():{}{  <IDENTIFIER> [ LOOKAHEAD(2) TypeArguments() ]  ( LOOKAHEAD(2) "." <IDENTIFIER> [ LOOKAHEAD(2) TypeArguments() ] )*}void TypeArguments():{}{   "<" TypeArgument() ( "," TypeArgument() )* ">"}void TypeArgument():{}{//   ReferenceType()// |   "?" //[ WildcardBounds() ]}
+void TypeParameter():{}{   <IDENTIFIER> [ TypeBound() ]}void TypeBound():{}{   "extends" ClassOrInterfaceType() ( "&" ClassOrInterfaceType() )*}void TypeArguments():{}{   "<" TypeArgument() ( "," TypeArgument() )* ">"}void TypeArgument():{}{//   ReferenceType()// |   "?" //[ WildcardBounds() ]}
+
+void MethodDeclaration(int modifiers):
+{}
+{
+  // Modifiers already matched in the caller!
+  [ TypeParameters() ]
+  ResultType()
+  MethodDeclarator() [ "throws" NameList() ]
+  ( Block() | ";" )
+
+}
+
+void ResultType():
+{}
+{
+  "void"
+|
+  Type()
+}
+
+
+void Type():
+{}
+{
+   LOOKAHEAD(2) ReferenceType()
+ |
+   PrimitiveType()
+}
+
+void ReferenceType():
+{}
+{
+   PrimitiveType() ( LOOKAHEAD(2) "[" "]" )+
+  |
+   ( ClassOrInterfaceType() ) ( LOOKAHEAD(2) "[" "]" )*
+}
+
+void ClassOrInterfaceType():
+{}
+{
+  <IDENTIFIER> [ LOOKAHEAD(2) TypeArguments() ]
+  ( LOOKAHEAD(2) "." <IDENTIFIER> [ LOOKAHEAD(2) TypeArguments() ] )*
+}
+
+
+void MethodDeclarator():
+{}
+{
+  <IDENTIFIER> FormalParameters() ( "[" "]" )*
+}
+
+void FormalParameters():
+{}
+{
+  "(" [ FormalParameter() ( "," FormalParameter() )* ] ")"
+}
+
+void FormalParameter():
+{}
+{
+  Modifiers() Type() [ "..." ] VariableDeclaratorId()
+}
+
+void VariableDeclaratorId():
+{}
+{
+  <IDENTIFIER> ( "[" "]" )*
+}
+
+void Name():
+/*
+ * A lookahead of 2 is required below since "Name" can be followed
+ * by a ".*" when used in the context of an "ImportDeclaration".
+ */
+{}
+{
+  <IDENTIFIER>
+  ( LOOKAHEAD(2) "." <IDENTIFIER>
+  )*
+}
+
+void NameList():
+{}
+{
+  Name() ( "," Name() )*
+}
+
+void Block():
+{}
+{
+  "{" 
+  // ( BlockStatement() )* 
+  ( <STUFF_TO_IGNORE: ~[]> )?
+  "}"
+}
+
+void PrimitiveType():
+{}
+{
+  "boolean"
+|
+  "char"
+|
+  "byte"
+|
+  "short"
+|
+  "int"
+|
+  "long"
+|
+  "float"
+|
+  "double"
+}
+
+
+void MainBlock() :
+{
+}
+{
+	"main" Block()
+}
+
 
 
 
