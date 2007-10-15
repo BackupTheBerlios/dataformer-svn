@@ -1,63 +1,70 @@
 public transformation MyTransformation {
 
-	public abstract component Filter {
+	public component Filter<I> {
 		required property String someProperty;
-		out port <Valid> validOutput;
-		optional in port <Input> input;
-		out port <Invalid> invalidOutput;
+		out port I validOutput;
+		in port I input;
+		optional out port I invalidOutput;
 		
 		
-		abstract boolean testCondition(T inputRecord);
+		abstract boolean testCondition(I inputRecord);
 		
 		main {
-			while (record << in) {
-				if (testCondition(record)) {
-					record >> validOutput;
+			I rec;
+			while (rec << input) {
+				if (testCondition(rec)) {
+					rec >> validOutput;
 				} else {
-					record >> invalidOutput;
+					rec >> invalidOutput;
 				}
 			}
 		}
 	}
 
 
-	public component LessThanThreeFilter	
-	
-	public abstract component Reader<T> {
-		required String fileName;
-		out port T outputPort;
-		
-		protected abstract T parseRecord(final String line);
+	public component Generator<T> {
+		public out port T output;
 		
 		main {
-			BufferedReader rd = new BufferedReader(new FileReader(fileName));
-			String line = null;
-			T parsedRecord = null;
-			while ((line = rd.readLine()) != null) {
-				parsedRecord = parseRecord(line);
-				parsedRecord >> outputPort;
+			generateMessage() >> output;
+		}
+	}
+
+
+	public abstract component TrashBin<T> {
+		public in port T input;
+		
+		
+		main {
+			T rec;
+			while (rec << input) {
+				// do nothing				
 			}
 		}
 	}
+
+
+	public record InputRecord {
+		int firstField("|");
+		boolean secondField("\n");
+	}
 	
-	public component DelimitedReader<T> extends Reader<T> {
-		property String inputFileName;
-		property String delimiter;
-	
+	// component as transformation field
+	private Generator<InputRecord> reader;
 		
-	
-		private T parseRecord(final String line) {
-			StringTokeninzer tok = new StringTokenizer(delimiter);
+	// filter inline implementation
+	private Filter<InputRecord> filter {
+		public boolean testCondition(InputRecord inputRec) {
+			return inputRec.secondField;
 		}
-	}
+	};
 	
+	// trash bin implementation
+	private TrashBin<InputRecord> trashBin;
 	
-	public component Transformer {
-	}
 	
 	graph {
-		connect reader.out -> filter.in
-		connect filter.out -> transformer.in
-		connect transformer.out -> writer.in
+		connect reader.output -> filter.input
+		connect filter.validOutput -> trashBin.input
 	}
 }
