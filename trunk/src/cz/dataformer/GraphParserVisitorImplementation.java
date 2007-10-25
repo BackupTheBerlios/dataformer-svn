@@ -32,7 +32,7 @@ public class GraphParserVisitorImplementation implements GraphParserVisitor {
 		return null;
 	}
 
-	public Object visit(ASTPortOrPropertyDeclaration node, Object data) throws VisitorException {
+	public Object visit(ASTComponentBodyDeclaration node, Object data) throws VisitorException {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -67,21 +67,6 @@ public class GraphParserVisitorImplementation implements GraphParserVisitor {
 		return null;
 	}
 
-	public Object visit(ASTTypeBound node, Object data) throws VisitorException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public Object visit(ASTTypeArguments node, Object data) throws VisitorException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public Object visit(ASTTypeArgument node, Object data) throws VisitorException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 	public Object visit(ASTMethodDeclaration node, Object data) throws VisitorException {
 		// TODO Auto-generated method stub
 		return null;
@@ -92,17 +77,12 @@ public class GraphParserVisitorImplementation implements GraphParserVisitor {
 		return null;
 	}
 
+	public Object visit(ASTPropertyType node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 	public Object visit(ASTType node, Object data) throws VisitorException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public Object visit(ASTReferenceType node, Object data) throws VisitorException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public Object visit(ASTClassOrInterfaceType node, Object data) throws VisitorException {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -122,27 +102,147 @@ public class GraphParserVisitorImplementation implements GraphParserVisitor {
 		return null;
 	}
 
-	public Object visit(ASTVariableDeclaratorId node, Object data) throws VisitorException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public Object visit(ASTName node, Object data) throws VisitorException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public Object visit(ASTNameList node, Object data) throws VisitorException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 	public Object visit(ASTBlock node, Object data) throws VisitorException {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
+	public Object visit(ASTMainBlock node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 	public Object visit(ASTPrimitiveType node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTBlockStatement node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTLocalVariableDeclaration node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTVariableDeclarator node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTVariableDeclaratorId node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTVariableInitializer node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTAssignment node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTConditionalExpression node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTConditionalOrExpression node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTConditionalAndExpression node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTInclusiveOrExpression node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTExclusiveOrExpression node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTAndExpression node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTEqualityExpression node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTRelationalExpression node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTAdditiveExpression node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTMultiplicativeExpression node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTUnaryExpression node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTPreIncrementExpression node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTPreDecrementExpression node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTUnaryExpressionNotPlusMinus node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTPostfixExpression node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTId node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTTrueNode node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTFalseNode node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTStatement node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTEmptyStatement node, Object data) throws VisitorException {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -162,11 +262,67 @@ public class GraphParserVisitorImplementation implements GraphParserVisitor {
 		return null;
 	}
 
-	public Object visit(ASTMainBlock node, Object data) throws VisitorException {
+	public Object visit(ASTIfStatement node, Object data) throws VisitorException {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
+	public Object visit(ASTWhileStatement node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTDoStatement node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTShiftExpression node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTRSIGNEDSHIFT node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTPrimaryExpression node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTPrimaryPrefix node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTPrimarySuffix node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTMemberSelector node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTName node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTArguments node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTArgumentList node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	
 
 
 }
