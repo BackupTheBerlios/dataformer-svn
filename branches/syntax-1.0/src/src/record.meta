@@ -1,5 +1,0 @@
-public record AnotherRecord {
-int prefix(3);
-int account("|");
-boolean thirdField("\n");
-}
