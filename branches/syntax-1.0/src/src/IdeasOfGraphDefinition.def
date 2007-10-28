@@ -1,0 +1,118 @@
+public transformation MyTransformation {
+
+	public abstract component Filter<I> {
+		required property String someProperty;
+		out port I validOutput;
+		in port I input;
+		optional out port I invalidOutput;
+		
+		
+		abstract boolean testCondition(I inputRecord);
+		
+		main {
+			I record;
+			while (record << input) {
+				if (testCondition(record)) {
+					record >> validOutput;
+				} else {
+					record >> invalidOutput;
+				}
+			}
+		}
+	}
+
+
+	public abstract component Reader<T> {
+		required String fileName;
+		out port T outputPort;
+		
+		protected abstract T parseRecord(final String line);
+		
+		main {
+			BufferedReader rd = new BufferedReader(new FileReader(fileName));
+			String line = null;
+			T parsedRecord = null;
+			while ((line = rd.readLine()) != null) {
+				parsedRecord = parseRecord(line);
+				parsedRecord >> outputPort;
+			}
+		}
+	}
+	
+	public component DelimitedReader<T> extends Reader<T> {
+		property String inputFileName;
+		property String delimiter;
+		
+	
+		public abstract void setField(T parsedRecord, int fieldNum, String tokenValue);
+	
+		private T parseRecord(final String line) {
+			StringTokeninzer tok = new StringTokenizer(line,delimiter);
+			int fieldNum = 0;
+			T parsedRecord; // initialized by empty record here
+			while (tok.hasMoreTokens()) {
+				setField(parsedRecord,fieldNum++,tok.nextToken());
+			}
+			return parsedRecord;
+		}
+	}
+
+	public abstract component Writer<T> {
+		property String outputFileName;
+		public in port T input;
+		
+		public abstract writeField(T record, int fieldNum, BufferedWriter writer);
+		
+		main {
+			T record;
+			BufferedWriter writer = new BufferedWriter(new FileWriter(outputFileName));
+			int fieldNum = 0;
+			while (record << input) {
+				writeField(record,fieldNum++,writer);
+			}
+		}
+	}
+
+
+	public record InputRecord {
+		int firstField("|");
+		boolean secondField("\n");
+	}
+	
+	
+	// reader implementation
+	public component DelimitedReader<InputRecord> reader {
+		public void setField(InputRecord parsedRecord, int fieldNum, String tokenValue) {
+			if (fieldNum == 0) {
+				parsedRecord.firstField = Integer.parseInt(tokenValue);
+			} else {
+				parsedRecord.secondField = Boolean.parseBoolean(tokenValue);
+			}
+		}
+	}
+	
+	// filter implementation
+	public component Filter<InputRecord> filter {
+		public boolean testCondition(InputRecord record) {
+			return record.secondField;
+		}
+		
+	}
+	
+	// writer implementation
+	public component Writer<InputRecord> writer {
+		public void writeField(InputRecord record, int fieldNum, BufferedWriter writer) {
+			if (fieldNum == 0) {
+				writer.append(record.firstField);
+			} else {
+				writer.append(record.secondField.toString());
+			}
+		}
+	}
+	
+	
+	graph {
+		connect reader.output -> filter.input
+		connect filter.validOutput -> writer.input
+	}
+}
