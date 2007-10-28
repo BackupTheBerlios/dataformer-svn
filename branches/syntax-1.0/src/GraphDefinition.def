@@ -1,0 +1,70 @@
+public transformation MyTransformation {
+
+	public component Filter<I> {
+		required property String someProperty;
+		out port I validOutput;
+		in port I input;
+		optional out port I invalidOutput;
+		
+		
+		abstract boolean testCondition(I inputRecord);
+		
+		main {
+			I rec;
+			while (rec << input) {
+				if (testCondition(rec)) {
+					rec >> validOutput;
+				} else {
+					rec >> invalidOutput;
+				}
+			}
+		}
+	}
+
+
+	public component Generator<T> {
+		public out port T output;
+		
+		main {
+			generateMessage() >> output;
+		}
+	}
+
+
+	public abstract component TrashBin<T> {
+		public in port T input;
+		
+		
+		main {
+			T rec;
+			while (rec << input) {
+				// do nothing				
+			}
+		}
+	}
+
+
+	public record InputRecord {
+		int firstField("|");
+		boolean secondField("\n");
+	}
+	
+	// component as transformation field
+	private Generator<InputRecord> reader;
+		
+	// filter inline implementation
+	private Filter<InputRecord> filter {
+		public boolean testCondition(InputRecord inputRec) {
+			return inputRec.secondField;
+		}
+	};
+	
+	// trash bin implementation
+	private TrashBin<InputRecord> trashBin;
+	
+	
+	graph {
+		connect reader.output -> filter.input
+		connect filter.validOutput -> trashBin.input
+	}
+}
