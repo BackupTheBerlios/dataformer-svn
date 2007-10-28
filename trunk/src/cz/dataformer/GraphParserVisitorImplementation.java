@@ -337,6 +337,36 @@ public class GraphParserVisitorImplementation implements GraphParserVisitor {
 		return null;
 	}
 
+	public Object visit(ASTComponentFieldDeclaration node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTComponentInputOutputTypeList node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTComponentInputOutputType node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTComponentClassName node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTComponentInlineImplementation node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTReturnStatement node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 	
 
 

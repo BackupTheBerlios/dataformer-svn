@@ -99,6 +99,7 @@ TOKEN :
 | < RSIGNEDSHIFTASSIGN: ">>=" >
 | < RUNSIGNEDSHIFTASSIGN: ">>>=" >
 | < ELLIPSIS: "..." >
+| < PORT_CONNECTION: "->" >
 }
 
 
@@ -244,7 +245,14 @@ void Transformation() : {
 }
 {
 	Modifiers() "transformation" <IDENTIFIER> "{"
-	( Modifiers() ( ComponentDeclaration() | RecordDeclaration() ) )*
+	( Modifiers() ( 
+		ComponentDeclaration() 
+		| 
+		RecordDeclaration()
+		|
+		ComponentFieldDeclaration()
+		) 
+	)*
 	ComponentConnection()
 	"}"
 	
@@ -675,7 +683,7 @@ void BooleanLiteral() #void :
 }
 
 void Statement():{}{
-//  LOOKAHEAD(2)//  LabeledStatement()//|//  AssertStatement()//|  Block()|  EmptyStatement()|  StatementExpression() ";"//|//  SwitchStatement()|  IfStatement()|  WhileStatement()//|//  DoStatement()//|//  ForStatement()//|//  BreakStatement()//|//  ContinueStatement()//|//  ReturnStatement()//|//  ThrowStatement()//|//  SynchronizedStatement()//|//  TryStatement()}void EmptyStatement():{}{  ";"}
+//  LOOKAHEAD(2)//  LabeledStatement()//|//  AssertStatement()//|  Block()|  EmptyStatement()|  StatementExpression() ";"//|//  SwitchStatement()|  IfStatement()|  WhileStatement()//|//  DoStatement()//|//  ForStatement()//|//  BreakStatement()//|//  ContinueStatement()|  ReturnStatement()//|//  ThrowStatement()//|//  SynchronizedStatement()//|//  TryStatement()}void EmptyStatement():{}{  ";"}
 
 void IfStatement():
 /*
@@ -699,6 +707,13 @@ void DoStatement():
 {
   "do" Statement() "while" "(" Expression() ")" ";"
 }
+
+void ReturnStatement():
+{}
+{
+  "return" [ Expression() ] ";"
+}
+
 
 void RSIGNEDSHIFT():
 {}
@@ -772,6 +787,48 @@ void StreamStatement():
 	( "<<" | RSIGNEDSHIFT() )
 	Id()
 }
+
+
+void ComponentFieldDeclaration():
+{}
+{
+	ComponentClassName() 
+	ComponentInputOutputTypeList()
+	<IDENTIFIER>
+	[ ComponentInlineImplementation() ] ";"	
+}
+
+void ComponentInputOutputTypeList() :
+{}
+{
+	"<" ComponentInputOutputType() ( "," ComponentInputOutputType() )* ">"
+}
+
+void ComponentInputOutputType() :
+{}
+{
+	<IDENTIFIER>
+}
+
+void ComponentClassName() :
+{}
+{
+	<IDENTIFIER>
+}
+
+	
+void ComponentInlineImplementation() :
+{}
+{
+	"{" 
+		ComponentBodyDeclaration() 
+	"}"
+}
+
+
+
+
+
 
 void RecordDeclaration() : {
 	Token tok;
