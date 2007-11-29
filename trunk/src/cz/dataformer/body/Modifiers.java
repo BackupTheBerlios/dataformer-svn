@@ -1,6 +1,17 @@
-package cz.dataformer;
+package cz.dataformer.body;
 
-public class ModifierSet {
+import cz.dataformer.ParseException;
+import cz.dataformer.Token;
+
+
+/**
+ * Class represents set of modifiers related to language element
+ * 
+ * @author mtomcany
+ *
+ */
+public class Modifiers {
+
 	/* Definitions of the bits in the modifiers field. */
 	public static final int PUBLIC = 0x00001;
 
@@ -35,77 +46,100 @@ public class ModifierSet {
 
 	public static final int REQUIRED = 0x10000;
 
+	
+	// modifiers represented as a logical sum
+	private final int modifiers;
+	
+	/**
+	 * Creates instance with the defined set of modifiers
+	 * @param modifiers	Modifiers to use
+	 */
+	public Modifiers(int modifiers) {
+		this.modifiers = modifiers;
+	}
+	
+	
 	/**
 	 * A set of accessors that indicate whether the specified modifier is in the
 	 * set.
 	 */
 
-	public boolean isPublic(int modifiers) {
+	public boolean isPublic() {
 		return (modifiers & PUBLIC) != 0;
 	}
 
-	public boolean isProtected(int modifiers) {
+	public boolean isProtected() {
 		return (modifiers & PROTECTED) != 0;
 	}
 
-	public boolean isPrivate(int modifiers) {
+	public boolean isPrivate() {
 		return (modifiers & PRIVATE) != 0;
 	}
 
-	public boolean isStatic(int modifiers) {
+	public boolean isStatic() {
 		return (modifiers & STATIC) != 0;
 	}
 
-	public boolean isAbstract(int modifiers) {
+	public boolean isAbstract() {
 		return (modifiers & ABSTRACT) != 0;
 	}
 
-	public boolean isFinal(int modifiers) {
+	public boolean isFinal() {
 		return (modifiers & FINAL) != 0;
 	}
 
-	public boolean isNative(int modifiers) {
+	public boolean isNative() {
 		return (modifiers & NATIVE) != 0;
 	}
 
-	public boolean isStrictfp(int modifiers) {
+	public boolean isStrictfp() {
 		return (modifiers & STRICTFP) != 0;
 	}
 
-	public boolean isSynchronized(int modifiers) {
+	public boolean isSynchronized() {
 		return (modifiers & SYNCHRONIZED) != 0;
 	}
 
-	public boolean isTransient(int modifiers) {
+	public boolean isTransient() {
 		return (modifiers & TRANSIENT) != 0;
 	}
 
-	public boolean isVolatile(int modifiers) {
+	public boolean isVolatile() {
 		return (modifiers & VOLATILE) != 0;
 	}
 
-	public boolean isInput(int modifiers) {
+	public boolean isInput() {
 		return (modifiers & IN) != 0;
 	}
 	
-	public boolean isOutput(int modifiers) {
+	public boolean isOutput() {
 		return (modifiers & OUT) != 0;
 	}
 	
-	public boolean isOptional(int modifiers) {
+	public boolean isOptional() {
 		return (modifiers & OPTIONAL) != 0;
 	}
 	
-	public boolean isRequired(int modifiers) {
+	public boolean isRequired() {
 		return (modifiers & REQUIRED) != 0;
 	}
-	
 	
 	
 	/**
 	 * Removes the given modifier.
 	 */
-	static int removeModifier(int modifiers, int mod) {
+	public static int removeModifier(int modifiers, int mod) {
 		return modifiers & ~mod;
 	}
+	
+	 /**
+     * Adds the given modifier.
+     */
+    public static int addModifier(int modifiers, int mod, Token token) throws ParseException {
+        if ((modifiers & mod) != 0) {
+            throw new ParseException(token, "Duplicated modifier");
+        }
+        return modifiers |= mod;
+    }
+	
 }

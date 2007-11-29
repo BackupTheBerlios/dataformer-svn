@@ -12,15 +12,31 @@ options {
 }
 PARSER_BEGIN(GraphParser)
 package cz.dataformer;
+
+import cz.dataformer.body.*;
+import cz.dataformer.type.*;
+import cz.dataformer.expr.*;
+import cz.dataformer.statement.*;
+import java.util.List;
+import java.util.LinkedList;
+
 public class GraphParser {
 	private String debugField;
+	
+	/* 
+	 * Utility method to add items into list
+	 * Also features lazy allocation
+	 */
+	private List add(List list, Object obj) {
+		if (list == null) {
+			list = new LinkedList();
+    	}
+    	list.add(obj);
+    	return list;
+    }
+	
 }
 PARSER_END(GraphParser)
-
-// public record <recordname> {
-// int a(10);
-// int b("|")
-// }
 
 SKIP : { " "|"\r"|"\t"|"\n"|"\f" }
 
@@ -41,12 +57,6 @@ TOKEN :
 |
   < #OCTAL_LITERAL: "0" (["0"-"7"])* >
 }
-
-TOKEN : 
-{
-	< STRING_TYPE : "String" >
-}
-
 
 TOKEN :
 {
@@ -266,25 +276,28 @@ void ComponentDeclaration() :
 }
 {
 	// Modifiers already matched in the caller!
-	"component" <IDENTIFIER> TypeParameters() "{"
-		( ComponentBodyDeclaration() )*
+	"component" <IDENTIFIER> GenericTypeParameters() "{"
+		ComponentBodyDeclaration() 
 	  	MainBlock()
 	"}"
 }
 
 void ComponentBodyDeclaration() :
 {
-	int modifiers = 0;
+	Modifiers modifiers;
+	
 }
 {
-	Modifiers() 
-	( 
-		Port() 
+	(
+	 modifiers = Modifiers() 
+	 ( 
+		Port(modifiers) 
 		| 
 		Property()
 		|
 	  	MethodDeclaration(modifiers)
-  	)
+  	 )
+  	)*
 }
 
 /*
@@ -299,11 +312,14 @@ void ComponentConnection() : {
 	"}"
 }
 
-void Port() : 
+Port Port(Modifiers modifiers) : 
 {
+	GenericType type;
+	String name;
 }
 {
-	 "port"  TypeParameter()   <IDENTIFIER> ";"
+	 "port"  type = GenericTypeParameter()  <IDENTIFIER> { name = token.image; } ";"
+	 { return new Port(type.getLine(),type.getColumn(),modifiers,name,type); }
 }
 
 void Property() :
@@ -321,7 +337,7 @@ void Property() :
  * better error messages.
  */
 
-int Modifiers():
+Modifiers Modifiers():
 {
    int modifiers = 0;
 }
@@ -329,110 +345,251 @@ int Modifiers():
  (
   LOOKAHEAD(2)
   (
-   "public" { modifiers |= ModifierSet.PUBLIC; }
+   "public" { modifiers = Modifiers.addModifier(modifiers,Modifiers.PUBLIC,token); }
   |
-   "static" { modifiers |= ModifierSet.STATIC; }
+   "static" { modifiers = Modifiers.addModifier(modifiers,Modifiers.STATIC,token);}
   |
-   "protected" { modifiers |= ModifierSet.PROTECTED; }
+   "protected" { modifiers = Modifiers.addModifier(modifiers,Modifiers.PROTECTED,token); }
   |
-   "private" { modifiers |= ModifierSet.PRIVATE; }
+   "private" { modifiers = Modifiers.addModifier(modifiers,Modifiers.PRIVATE,token); }
   |
-   "final" { modifiers |= ModifierSet.FINAL; }
+   "final" { modifiers = Modifiers.addModifier(modifiers,Modifiers.FINAL,token);}
   |
-   "abstract" { modifiers |= ModifierSet.ABSTRACT; }
+   "abstract" { modifiers = Modifiers.addModifier(modifiers,Modifiers.ABSTRACT,token);}
   |
-   "synchronized" { modifiers |= ModifierSet.SYNCHRONIZED; }
+   "synchronized" { modifiers = Modifiers.addModifier(modifiers,Modifiers.SYNCHRONIZED,token);}
   |
-   "native" { modifiers |= ModifierSet.NATIVE; }
+   "native" { modifiers = Modifiers.addModifier(modifiers,Modifiers.NATIVE,token);}
   |
-   "transient" { modifiers |= ModifierSet.TRANSIENT; }
+   "transient" { modifiers = Modifiers.addModifier(modifiers,Modifiers.TRANSIENT,token);}
   |
-   "volatile" { modifiers |= ModifierSet.VOLATILE; }
+   "volatile" { modifiers = Modifiers.addModifier(modifiers,Modifiers.VOLATILE,token);}
   |
-   "strictfp" { modifiers |= ModifierSet.STRICTFP; }
+   "strictfp" { modifiers = Modifiers.addModifier(modifiers,Modifiers.STRICTFP,token);}
   |
-   "in" { modifiers |= ModifierSet.IN; }
+   "in" { modifiers = Modifiers.addModifier(modifiers,Modifiers.IN,token);}
   |
-   "out" { modifiers |= ModifierSet.OUT; }
+   "out" { modifiers = Modifiers.addModifier(modifiers,Modifiers.OUT,token);}
   |
-   "optional" { modifiers |= ModifierSet.OPTIONAL; }
+   "optional" { modifiers = Modifiers.addModifier(modifiers,Modifiers.OPTIONAL,token);}
   |
-   "required" { modifiers |= ModifierSet.REQUIRED; }
+   "required" { modifiers = Modifiers.addModifier(modifiers,Modifiers.REQUIRED,token);}
   )
  )*
 
  {
-    return modifiers;
+    return new Modifiers(modifiers);
  }
 }
 
 /* 
 * Type parameters as defined in Java 1.5 grammar
 */
-void TypeParameters() :{}{   "<" TypeParameter() ( "," TypeParameter() )* ">"}
+void GenericTypeParameters() :{}{   "<" GenericTypeParameter() ( "," GenericTypeParameter() )* ">"}
 
 
-void TypeParameter():{}{   <IDENTIFIER> }void MethodDeclaration(int modifiers):
-{}
+GenericType GenericTypeParameter():{
+	String name;
+	int line,column;
+}{   <IDENTIFIER> 
+   { 
+   	name = token.image; line=token.beginLine; column=token.beginColumn;
+   	return new GenericType(line,column,name);
+   } }MethodDeclaration MethodDeclaration(Modifiers modifiers):
+{
+	Type type;
+	String name;
+	BlockStatement block = null;
+	List throwsDeclaration = null;
+	List parameters = null;
+}
 {
   // Modifiers already matched in the caller!
-  ResultType()
-  MethodDeclarator() //[ "throws" NameList() ]
-  ( Block() | ";" )
+  type = ReturnType()
+  <IDENTIFIER> { name = token.image; } 
+  parameters = FormalParameters() 
+  // old-style Java declaration not allowed in DataFormer ( "[" "]" { arrayCount++; } )* 
+  [ "throws" throwsDeclaration = NameList() ]
+  ( block = Block() | ";" )
+  
+  { return new MethodDeclaration(type.getLine(), type.getColumn(), modifiers, type, name, parameters, throwsDeclaration, block); }
 
 }
 
-void ResultType():
-{}
+Type ReturnType():
 {
-  "void"
+	Type ret;
+}
+{
+  "void" { ret = new VoidType(token.beginLine, token.beginColumn); }
 |
-  PrimitiveType() [ "[" "]" ]
+  LOOKAHEAD(2) ret = ReferenceType()
+|
+  ret = PrimitiveType()
+
+  
+  { return ret; }
+}
+
+ReferenceType ReferenceType():
+{
+	Type type;
+	int arrayCount = 0;
+}
+{
+	type = PrimitiveType() ( LOOKAHEAD(2) "[" "]" { arrayCount++; } )+
+	|
+	type = ClassOrInterfaceType() ( LOOKAHEAD(2) "[" "]" { arrayCount++; } )*
+	
+	{ return new ReferenceType(type.getLine(), type.getColumn(), type, arrayCount); }
+}
+
+ClassOrInterfaceType ClassOrInterfaceType():
+{
+	ClassOrInterfaceType ret;
+	String name;
+	int line;
+	int column;
+}
+{
+  <IDENTIFIER> {line=token.beginLine; column=token.beginColumn; name = token.image; } 
+   /* Type parametrization is not allowed in DataFormer 
+    * [ LOOKAHEAD(2) typeArgs = TypeArguments() ] 
+    */
+  { ret = new ClassOrInterfaceType(line, column, null, name); }
+  ( LOOKAHEAD(2) "." <IDENTIFIER> { name = token.image; } 
+   /* Type parametrization is not allowed in Dataformer
+    * [ LOOKAHEAD(2) typeArgs = TypeArguments() ] 
+    */
+    { ret = new ClassOrInterfaceType(line, column, ret, name); } )*
+  { return ret; }
+}
+
+List TypeArguments():
+{
+	List ret = new LinkedList();
+	Type type;
+}
+{
+   "<" type = TypeArgument() { ret.add(type); } ( "," type = TypeArgument() { ret.add(type); } )* ">"
+   { return ret; }
+}
+
+Type TypeArgument():
+{
+	Type ret;
+}
+{
+ (
+   ret = ReferenceType()
+ |
+   ret = Wildcard()
+ )
+ { return ret; }
+}
+
+WildcardType Wildcard():
+{
+	ReferenceType ext = null;
+	ReferenceType sup = null;
+	int line;
+	int column;
+}
+{
+   "?" {line=token.beginLine; column=token.beginColumn;}
+   [
+		"extends" ext = ReferenceType()
+	|
+		"super" sup = ReferenceType()
+   ]
+   { return new WildcardType(line, column, ext, sup); }
+}
+
+NameExpression Name():
+/*
+ * A lookahead of 2 is required below since "Name" can be followed
+ * by a ".*" when used in the context of an "ImportDeclaration".
+ */
+{
+	NameExpression ret;	
+}
+{
+  <IDENTIFIER> { ret = new NameExpression(token.beginLine, token.beginColumn, token.image); }
+  ( LOOKAHEAD(2) "." <IDENTIFIER> { ret = new QualifiedNameExpression(token.beginLine, token.beginColumn, ret, token.image); } )*
+  { return ret; }
+}
+
+List NameList():
+{
+	List ret = new LinkedList();
+	NameExpression name;
+}
+{
+  name = Name() { ret.add(name); }  ( "," name = Name() { ret.add(name); } )*
+  
+  { return ret; }
 }
 
 
 void PropertyType():
 {}
 {
-   PrimitiveType() [ "[" "]" ]
+   Type()
 }
 
-void Type() : 
-{}
+Type Type() : 
 {
-	PrimitiveType() [ "[" "]" ]
+	Type ret;
+}
+{
+	(
+	LOOKAHEAD(2) ret = ReferenceType()
 	|
-	// this is to match method parameters - should be replaced by proper type
-	<IDENTIFIER>
+	ret = PrimitiveType()
+	)
+	
+	{ return ret; }
 }
 
 
-void MethodDeclarator():
-{}
+List FormalParameters():
 {
-  <IDENTIFIER> FormalParameters() ( "[" "]" )*
+	List ret = null;
+	Parameter param;
+}
+{
+  "(" [ param = FormalParameter() { ret = add(ret,param); } 
+  	( "," param = FormalParameter() { add(ret,param); } )* ] 
+  ")"
+  { return ret; }
 }
 
-void FormalParameters():
-{}
+Parameter FormalParameter():
 {
-  "(" [ FormalParameter() ( "," FormalParameter() )* ] ")"
+	Modifiers mods;
+	Type type;
+	VariableDeclaratorId id;
+	boolean isVarArg = false;
+}
+{
+  mods = Modifiers() type = Type() [ "..." { isVarArg = true; }] id = VariableDeclaratorId()
+  
+  { return new Parameter(type.getLine(),type.getColumn(),mods,type,isVarArg,id); }
 }
 
-void FormalParameter():
-{}
+
+
+BlockStatement Block():
 {
-  Modifiers() Type() [ "..." ] VariableDeclaratorId()
+	Statement s;
+	List statements = null;
+	int line, column;
 }
-
-
-
-void Block():
-{}
 {
-  "{" 
- ( BlockStatement() )* 
+  "{" { line = token.beginLine; column = token.beginColumn; }
+ 	( s = BlockStatement() { statements = add(statements,s); }  )* 
   "}"
+  { return new BlockStatement(line, column, statements); }
 }
 
 void MainBlock() :
@@ -444,72 +601,125 @@ void MainBlock() :
 
 
 
-void PrimitiveType():
-{}
+Type PrimitiveType():
 {
-  "boolean"
+	PrimitiveType ret;
+}
+{
+(
+  "boolean" { ret = new PrimitiveType(token.beginLine, token.beginColumn, PrimitiveType.PrimitiveTypeEnum.Boolean); }
 |
-  "char"
+  "char" { ret = new PrimitiveType(token.beginLine, token.beginColumn, PrimitiveType.PrimitiveTypeEnum.Char); }
 |
-  "byte"
+  "byte" { ret = new PrimitiveType(token.beginLine, token.beginColumn, PrimitiveType.PrimitiveTypeEnum.Byte); }
 |
-  "short"
+  "short" { ret = new PrimitiveType(token.beginLine, token.beginColumn, PrimitiveType.PrimitiveTypeEnum.Short); }
 |
-  "int"
+  "int" { ret = new PrimitiveType(token.beginLine, token.beginColumn, PrimitiveType.PrimitiveTypeEnum.Int); }
 |
-  "long"
+  "long" { ret = new PrimitiveType(token.beginLine, token.beginColumn, PrimitiveType.PrimitiveTypeEnum.Long); }
 |
-  "float"
+  "float" { ret = new PrimitiveType(token.beginLine, token.beginColumn, PrimitiveType.PrimitiveTypeEnum.Float); }
 |
-  "double"
-|
-  "String" // treated as primary temporarily
+  "double" { ret = new PrimitiveType(token.beginLine, token.beginColumn, PrimitiveType.PrimitiveTypeEnum.Double); }
+)
+{ return ret; }
 }
 
 
-void BlockStatement():
-{}
+Statement BlockStatement():
+{
+	Expression expr;
+	Statement statement;
+}
+
 {
  LOOKAHEAD( Modifiers() Type() <IDENTIFIER> )
-  LocalVariableDeclaration() ";"
+  expr = LocalVariableDeclaration() ";"
+  { return new ExpressionStatement(expr.getLine(),expr.getColumn(),expr); }
 |
-  Statement()
+  statement = Statement()
+  { return statement; }
 }
 
-void LocalVariableDeclaration():
-{}
+VariableDeclarationExpression LocalVariableDeclaration():
 {
-  Modifiers() Type() VariableDeclarator() ( "," VariableDeclarator() )*
+	Modifiers modifiers;
+	Type type;
+	VariableDeclarator var;
+	List declarators = null;
 }
 
-void VariableDeclarator():
-{}
 {
-  VariableDeclaratorId() [ "=" VariableInitializer() ]
+  modifiers = Modifiers() 
+  type = Type() 
+  var = VariableDeclarator()
+  { declarators = add(declarators,var); }
+  ( "," var = VariableDeclarator() { add(declarators,var); })*
+  
+  { return new VariableDeclarationExpression(type.getLine(),type.getColumn(),modifiers,type,declarators); }
 }
 
-void VariableDeclaratorId():
-{}
+VariableDeclarator VariableDeclarator():
 {
-  <IDENTIFIER> ( "[" "]" )*
+	VariableDeclaratorId id;
+	Expression init = null;	
+}
+{
+  id = VariableDeclaratorId() [ "=" init = VariableInitializer() ]
+  { return new VariableDeclarator(id.getLine(), id.getColumn(), id, init); }
+}
+
+VariableDeclaratorId VariableDeclaratorId():
+{
+	int line,column;
+	int arrayCount = 0;
+	String name; 
+}
+{
+  <IDENTIFIER> { name = token.image; line = token.beginLine; column = token.beginColumn; } 
+  ( "[" "]" { arrayCount++; })*
+  
+  { return new VariableDeclaratorId(line,column,name,arrayCount); }
 }
 
 
-void VariableInitializer():
-{}
+Expression VariableInitializer():
+{
+	Expression expr;
+}
 {
 	
-//  ArrayInitializer()//|
-  Expression()
+  expr = ArrayInitializer()|
+  expr = Expression()
+  
+  { return expr; }
 }
 
-void Expression() #void:
+ArrayInitializerExpr ArrayInitializer():
+{
+	List values = null;
+	Expression val;
+	int line;
+	int column;
+}
+{
+  "{" {line=token.beginLine; column=token.beginColumn;} 
+  [ val = VariableInitializer() { values = add(values, val); } ( LOOKAHEAD(2) "," val = VariableInitializer() { values = add(values, val); } )* ] [ "," ] 
+  "}"
+  
+  { return new ArrayInitializerExpr(line, column, values); }
+}
+
+Expression Expression() #void:
 {}
 {
   LOOKAHEAD( PrimaryExpression() "=" )
   Assignment()
 |
   ConditionalExpression()
+  
+  { return null; }
 }
 
 void Assignment() :
@@ -682,8 +892,12 @@ void BooleanLiteral() #void :
   "false" #FalseNode
 }
 
-void Statement():{}{
-//  LOOKAHEAD(2)//  LabeledStatement()//|//  AssertStatement()//|  Block()|  EmptyStatement()|  StatementExpression() ";"//|//  SwitchStatement()|  IfStatement()|  WhileStatement()//|//  DoStatement()//|//  ForStatement()//|//  BreakStatement()//|//  ContinueStatement()|  ReturnStatement()//|//  ThrowStatement()//|//  SynchronizedStatement()//|//  TryStatement()}void EmptyStatement():{}{  ";"}
+Statement Statement():{}{
+//  LOOKAHEAD(2)//  LabeledStatement()//|//  AssertStatement()//|
+(  Block()|  EmptyStatement()|  StatementExpression() ";"//|//  SwitchStatement()|  IfStatement()|  WhileStatement()//|//  DoStatement()//|//  ForStatement()//|//  BreakStatement()//|//  ContinueStatement()|  ReturnStatement()//|//  ThrowStatement()//|//  SynchronizedStatement()//|//  TryStatement()
+
+)
+	{ return null; }}void EmptyStatement():{}{  ";"}
 
 void IfStatement():
 /*
@@ -723,19 +937,6 @@ void RSIGNEDSHIFT():
   ">" ">"
   )
 }
-
-void Name():
-/*
- * A lookahead of 2 is required below since "Name" can be followed
- * by a ".*" when used in the context of an "ImportDeclaration".
- */
-{}
-{
-  <IDENTIFIER>
-  ( LOOKAHEAD(2) "." <IDENTIFIER>
-  )*
-}
-
 
 void Arguments():
 {}
