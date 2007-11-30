@@ -892,12 +892,15 @@ void BooleanLiteral() #void :
   "false" #FalseNode
 }
 
-Statement Statement():{}{
+Statement Statement():{
+	Statement ret;
+}{
 //  LOOKAHEAD(2)//  LabeledStatement()//|//  AssertStatement()//|
-(  Block()|  EmptyStatement()|  StatementExpression() ";"//|//  SwitchStatement()|  IfStatement()|  WhileStatement()//|//  DoStatement()//|//  ForStatement()//|//  BreakStatement()//|//  ContinueStatement()|  ReturnStatement()//|//  ThrowStatement()//|//  SynchronizedStatement()//|//  TryStatement()
+(  ret = Block()|  ret = EmptyStatement()|  StatementExpression() ";"//|//  SwitchStatement()|  IfStatement()|  WhileStatement()//|//  DoStatement()//|//  ForStatement()//|//  BreakStatement()//|//  ContinueStatement()|  ReturnStatement()//|//  ThrowStatement()//|//  SynchronizedStatement()//|//  TryStatement()
 
 )
-	{ return null; }}void EmptyStatement():{}{  ";"}
+	{ return null; }}EmptyStatement EmptyStatement():{}{  ";"
+  { return new EmptyStatement(token.beginLine, token.beginColumn); }}
 
 void IfStatement():
 /*
