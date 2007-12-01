@@ -417,6 +417,16 @@ public class GraphParserVisitorImplementation implements GraphParserVisitor {
 		return null;
 	}
 
+	public Object visit(ASTLiteral node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTBooleanLiteral node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 	
 
 

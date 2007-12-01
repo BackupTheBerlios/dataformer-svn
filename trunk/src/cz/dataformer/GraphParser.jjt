@@ -322,11 +322,14 @@ Port Port(Modifiers modifiers) :
 	 { return new Port(type.getLine(),type.getColumn(),modifiers,name,type); }
 }
 
-void Property() :
+ComponentProperty Property() :
 {
+	Type type;
+	String name;
 }
 {
-	"property" PropertyType() <IDENTIFIER> ";"
+	"property" type = PropertyType() <IDENTIFIER> { name = token.image; } ";"
+	{ return new ComponentProperty(type.getLine(), type.getColumn(),type,name); }
 }
 
 
@@ -453,14 +456,8 @@ ClassOrInterfaceType ClassOrInterfaceType():
 }
 {
   <IDENTIFIER> {line=token.beginLine; column=token.beginColumn; name = token.image; } 
-   /* Type parametrization is not allowed in DataFormer 
-    * [ LOOKAHEAD(2) typeArgs = TypeArguments() ] 
-    */
   { ret = new ClassOrInterfaceType(line, column, null, name); }
   ( LOOKAHEAD(2) "." <IDENTIFIER> { name = token.image; } 
-   /* Type parametrization is not allowed in Dataformer
-    * [ LOOKAHEAD(2) typeArgs = TypeArguments() ] 
-    */
     { ret = new ClassOrInterfaceType(line, column, ret, name); } )*
   { return ret; }
 }
@@ -521,20 +518,23 @@ NameExpression Name():
 
 List NameList():
 {
-	List ret = new LinkedList();
+	List ret = null;
 	NameExpression name;
 }
 {
-  name = Name() { ret.add(name); }  ( "," name = Name() { ret.add(name); } )*
+  name = Name() { ret = add(ret,name); }  ( "," name = Name() { add(ret,name); } )*
   
   { return ret; }
 }
 
 
-void PropertyType():
-{}
+Type PropertyType():
 {
-   Type()
+	Type ret;
+}
+{
+   ret = Type()
+   { return ret; }
 }
 
 Type Type() : 
@@ -592,11 +592,15 @@ BlockStatement Block():
   { return new BlockStatement(line, column, statements); }
 }
 
-void MainBlock() :
+MainBlock MainBlock() :
 {
+	BlockStatement block;
+	int line,column;
 }
 {
-	"main" Block()
+	"main" { line=token.beginLine; column=token.beginColumn;} block = Block()
+
+	{ return new MainBlock(line,column,block); }
 }
 
 
@@ -832,41 +836,67 @@ void PostfixExpression():
   PrimaryExpression() [ "++" | "--" ]
 }
 
-void PrimaryExpression():
-{}
+Expression PrimaryExpression():
 {
-  PrimaryPrefix() ( LOOKAHEAD(2) PrimarySuffix() )*
+	Expression ret;
+}
+{
+  ret = PrimaryPrefix() ( LOOKAHEAD(2) ret = PrimarySuffix(ret) )*
+  { return ret; }
+
 }
 
-void PrimaryPrefix():
-{}
+Expression PrimaryPrefix():
 {
-  Literal()
-//|//  LOOKAHEAD( ( <IDENTIFIER> "." )* "this" )//  ( <IDENTIFIER> "." )*//  "this"//|//  "super" "." <IDENTIFIER>//|//  "(" Expression() ")"//|//  AllocationExpression()//|//  LOOKAHEAD( ResultType() "." "class" )//  ResultType() "." "class"
-|
-  Name()
+	Expression ret;
+	List args = null;
+	String name;
+	int line,column;
+	boolean hasArgs = false;
+}
+{
+	
+  (
+ 	 ret = Literal()
+  |
+ 	 "(" ret = Expression() ")"  |
+  	(
+	  	<IDENTIFIER> { name = token.image; line=token.beginLine; column=token.beginColumn; }  [ args = Arguments() {hasArgs=true;} ] 
+	  	{
+	  		ret = hasArgs 
+	  			? new MethodCallExpression(line, column, null, name, args)
+	  			: new NameExpression(line, column, name);
+	  	}
+	)
+  )
+  
+  { return ret; }
 }
 
-void PrimarySuffix():
-{}
+Expression PrimarySuffix(Expression scope):
 {
-//  LOOKAHEAD("." "super" ".")//  "." "super"//|//  LOOKAHEAD("." "this")//  "." "this"//|//  LOOKAHEAD(2)//  "." AllocationExpression()//|
-  LOOKAHEAD(3)
-  MemberSelector()
-|
-  "[" Expression() "]"
-|
-  "." <IDENTIFIER>
-|
-  Arguments()
+	Expression ret;
+	List args = null;
+	String name;
+	int line,column;
+	boolean hasArgs = false;
 }
-
-void MemberSelector():
-{}
 {
-  "." /*TypeArguments()*/ <IDENTIFIER>
-}
+  (
+    (
+  	  "."	<IDENTIFIER> { name = token.image; line=token.beginLine; column=token.beginColumn; }  [ args = Arguments() {hasArgs=true;} ] 
+	  	{
+	  		ret = hasArgs 
+	  			? new MethodCallExpression(line, column, scope, name, args)
+	  			: new FieldAccessExpression(line, column, scope, name);
+	  	}
+	)
+  |
+	  "[" {line=token.beginLine; column=token.beginColumn;} ret = Expression() "]" { ret = new ArrayAccessExpression(line, column, scope, ret); }
+  )
+  { return ret; }
 
+}
 
 
 void Id() :
@@ -876,20 +906,33 @@ void Id() :
    <IDENTIFIER>  
 }
 
-void Literal() #void :
-{}
+Expression Literal():
 {
-  <INTEGER_LITERAL>
+	Expression ret;
+}
+{
+  (
+  <INTEGER_LITERAL> 
+  { ret = new IntegerLiteralExpression(token.beginLine,token.beginColumn,token.image); }
 |
-  BooleanLiteral()
+  ret = BooleanLiteral()
+  )
+  { return ret; }
 }
 
-void BooleanLiteral() #void :
-{}
+Expression BooleanLiteral():
 {
-  "true" #TrueNode
+	Expression ret;
+}
+{
+  (
+  "true" 
+  { ret = new BooleanLiteralExpression(token.beginLine,token.beginColumn,Boolean.TRUE); }
 |
-  "false" #FalseNode
+  "false"
+  { ret = new BooleanLiteralExpression(token.beginLine,token.beginColumn,Boolean.FALSE); }
+  )
+  { return ret; }
 }
 
 Statement Statement():{
@@ -941,16 +984,24 @@ void RSIGNEDSHIFT():
   )
 }
 
-void Arguments():
-{}
+List Arguments():
 {
-  "(" [ ArgumentList() ] ")"
+	List ret = null;
 }
 
-void ArgumentList():
-{}
 {
-  Expression() ( "," Expression() )*
+  "(" [ ret = ArgumentList() ] ")"
+  { return ret; }
+}
+
+List ArgumentList():
+{
+	List ret = null;
+	Expression expr;
+}
+{
+  expr = Expression() { add(ret,expr); } ( "," expr = Expression() { add(ret,expr);} )*
+  { return ret; }
 }
 
 void StatementExpression():
