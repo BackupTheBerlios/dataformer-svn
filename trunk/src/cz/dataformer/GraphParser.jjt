@@ -13,10 +13,11 @@ options {
 PARSER_BEGIN(GraphParser)
 package cz.dataformer;
 
-import cz.dataformer.body.*;
-import cz.dataformer.type.*;
-import cz.dataformer.expr.*;
-import cz.dataformer.statement.*;
+import cz.dataformer.ast.*;
+import cz.dataformer.ast.body.*;
+import cz.dataformer.ast.type.*;
+import cz.dataformer.ast.expression.*;
+import cz.dataformer.ast.statement.*;
 import java.util.List;
 import java.util.LinkedList;
 
