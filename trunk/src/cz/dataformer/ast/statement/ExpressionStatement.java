@@ -3,7 +3,7 @@
  */
 package cz.dataformer.ast.statement;
 
-import cz.dataformer.ast.expression.Expression;
+import cz.dataformer.ast.expressionession.Expression;
 
 /**
  * @author mtomcany
