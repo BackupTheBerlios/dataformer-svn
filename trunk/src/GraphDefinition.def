@@ -45,8 +45,9 @@ public transformation MyTransformation {
 
 
 	public record InputRecord {
-		int firstField("|");
-		boolean secondField("\n");
+		int firstField delimiter("|");
+		int secondField length(20);
+		boolean thirdField delimiter("\n");
 	}
 	
 	// component as transformation field
