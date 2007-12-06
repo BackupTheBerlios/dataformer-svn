@@ -6,7 +6,7 @@ package cz.dataformer.ast.body;
 import cz.dataformer.DataFormerNode;
 
 /**
- * @author Julio Vilmar Gesser
+ * @author mtomcany
  */
 public abstract class BodyDeclaration extends DataFormerNode {
 

@@ -252,12 +252,17 @@ MORE :
 /*
  * Transformation declaration
  */
-void Transformation() : {
+Transformation Transformation() : 
+{
+	List components = null;
+	ComponentDeclaration cd;
+	String name;
+	int line,column;
 }
 {
-	Modifiers() "transformation" <IDENTIFIER> "{"
+	Modifiers() "transformation" <IDENTIFIER> { line = token.beginLine; column = token.beginColumn; name = token.image; } "{"
 	( Modifiers() ( 
-		ComponentDeclaration() 
+		cd = ComponentDeclaration() { components = add(components,cd); }
 		| 
 		RecordDeclaration()
 		|
@@ -267,38 +272,52 @@ void Transformation() : {
 	ComponentConnection()
 	"}"
 	
+	{ return new Transformation(line,column,name,components); }
+	
 }
 
 /*
  * Transformation component declaration
  */
-void ComponentDeclaration() : 
+ComponentDeclaration ComponentDeclaration() : 
 {
+	int line, column;
+	String name;
+	List params;
+	List members;
+	MainBlock main;
 }
 {
 	// Modifiers already matched in the caller!
-	"component" <IDENTIFIER> GenericTypeParameters() "{"
-		ComponentBodyDeclaration() 
-	  	MainBlock()
+	"component" <IDENTIFIER> { line = token.beginLine; column = token.beginColumn; name = token.image; }
+	params = GenericTypeParameters() "{"
+		members = ComponentBodyDeclaration() 
+	  	main = MainBlock()
 	"}"
+	
+	{ return new ComponentDeclaration(line,column,name,members,main); }
 }
 
-void ComponentBodyDeclaration() :
+List ComponentBodyDeclaration() :
 {
 	Modifiers modifiers;
+	List ret = null;
+	BodyDeclaration member;
 	
 }
 {
 	(
 	 modifiers = Modifiers() 
 	 ( 
-		Port(modifiers) 
+		member = Port(modifiers) { ret = add(ret,member); }
 		| 
-		Property()
+		member = Property(modifiers) { ret = add(ret,member); }
 		|
-	  	MethodDeclaration(modifiers)
+	  	member = MethodDeclaration(modifiers) { ret = add(ret,member); }
   	 )
   	)*
+  	
+  	{ return ret; }
 }
 
 /*
@@ -323,14 +342,14 @@ Port Port(Modifiers modifiers) :
 	 { return new Port(type.getLine(),type.getColumn(),modifiers,name,type); }
 }
 
-ComponentProperty Property() :
+ComponentProperty Property(Modifiers modifiers) :
 {
 	Type type;
 	String name;
 }
 {
 	"property" type = PropertyType() <IDENTIFIER> { name = token.image; } ";"
-	{ return new ComponentProperty(type.getLine(), type.getColumn(),type,name); }
+	{ return new ComponentProperty(type.getLine(), type.getColumn(),modifiers,type,name); }
 }
 
 
@@ -389,7 +408,13 @@ Modifiers Modifiers():
 /* 
 * Type parameters as defined in Java 1.5 grammar
 */
-void GenericTypeParameters() :{}{   "<" GenericTypeParameter() ( "," GenericTypeParameter() )* ">"}
+List GenericTypeParameters() :{
+	List ret = null;
+	GenericType type;
+}{   "<" type = GenericTypeParameter() { ret = add(ret,type); } 
+   ( "," type = GenericTypeParameter() { add(ret,type); } )* ">"
+   
+   { return ret; }}
 
 
 GenericType GenericTypeParameter():{
