@@ -18,6 +18,7 @@ import cz.dataformer.ast.body.*;
 import cz.dataformer.ast.type.*;
 import cz.dataformer.ast.expression.*;
 import cz.dataformer.ast.statement.*;
+import cz.dataformer.ast.record.*;
 import java.util.List;
 import java.util.LinkedList;
 
@@ -159,6 +160,7 @@ TOKEN :
 | < CONST: "const" >
 | < CONTINUE: "continue" >
 | < _DEFAULT: "default" >
+| < DELIMITER: "delimiter" >
 | < DO: "do" >
 | < DOUBLE: "double" >
 | < ELSE: "else" >
@@ -179,6 +181,7 @@ TOKEN :
 | < INT: "int" >
 | < INTERFACE: "interface" >
 | < LONG: "long" >
+| < LENGTH: "length" >
 | < MAIN: "main" >
 | < NATIVE: "native" >
 | < NEW: "new" >
@@ -255,7 +258,9 @@ MORE :
 Transformation Transformation() : 
 {
 	List components = null;
+	List records = null;
 	ComponentDeclaration cd;
+	RecordDeclaration rd;
 	String name;
 	int line,column;
 }
@@ -264,15 +269,15 @@ Transformation Transformation() :
 	( Modifiers() ( 
 		cd = ComponentDeclaration() { components = add(components,cd); }
 		| 
-		RecordDeclaration()
+		rd = RecordDeclaration() { records = add(records,rd); }
 		|
-		ComponentFieldDeclaration()
+		ComponentVariableDeclaration()
 		) 
 	)*
 	ComponentConnection()
 	"}"
 	
-	{ return new Transformation(line,column,name,components); }
+	{ return new Transformation(line,column,name,components,records); }
 	
 }
 
@@ -1070,7 +1075,7 @@ void StreamStatement():
 }
 
 
-void ComponentFieldDeclaration():
+void ComponentVariableDeclaration():
 {}
 {
 	ComponentClassName() 
@@ -1111,51 +1116,59 @@ void ComponentInlineImplementation() :
 
 
 
-void RecordDeclaration() : {
-	Token tok;
+RecordDeclaration RecordDeclaration() : {
+	String name;
+	int line,column;
+	FieldDeclaration field = null;
+	List fields = null;
 }
 {
 	// Modifiers already matched in the caller!
 	"record"
-	tok = <IDENTIFIER>
-	{ 
-		jjtThis.name = tok.image;
-	}
+	<IDENTIFIER> { line=token.beginLine; column=token.beginColumn; name=token.image; }
 	"{"
-		(FieldDeclaration() ";")+
-	"}"		
+		field = FieldDeclaration() { fields = add(fields,field); } 
+		( field = FieldDeclaration()  { add(fields,field); } )*
+	"}"
+	
+	{ return new RecordDeclaration(line,column,name,fields); }		
 }
 
 
-void FieldDeclaration() #void: 
+FieldDeclaration FieldDeclaration() #void: 
 {
-	Token dataType;
-	Token identifier;
-	Token delimiter;
-	Token size;
+	Type type = null;
+	String name = null;
+	int line=0;
+	int column = 0;
+	boolean isDelimited = false;
+	int length = 0;
+	String delimiter = null;
 } 
 {
-	(dataType = <INT> | dataType = <BOOLEAN> ) 
+	type = Type()
+	<IDENTIFIER> { line=token.beginLine; column=token.beginColumn; name=token.image; }
 	
-	identifier = <IDENTIFIER>
-	
-	 "(" ( 
-	 	(size = <INTEGER_LITERAL>
-		 	{ 
-		 	  jjtThis.type = dataType.kind; 
-		 	  jjtThis.name = identifier.image;
-		 	  jjtThis.length = Integer.parseInt(size.image);
-			}	 
-	 	) #FixedRecordField() 
-	 	| 
-	 	(delimiter = <STRING>
-		 	{ 
-		 	  jjtThis.type = dataType.kind; 
-		 	  jjtThis.name = identifier.image;
-		 	  jjtThis.delimiter = delimiter.image;
-			} 
-	 	) #DelimitedRecordField()
-	 	 ) ")"
+	(
+	  (
+	  	 "length" "(" 
+	 	 <INTEGER_LITERAL> { length = Integer.parseInt(token.image); }
+	 	 ")"
+	  )
+	  |
+	  (
+	  	 "delimiter" "("
+	 	 <STRING> { delimiter = token.image; isDelimited = true;}
+	 	 ")"
+	  )
+	 )
+	 
+	 ";"
+	 
+	 { 
+	 	return isDelimited ? new DelimitedFieldDeclaration(line,column,type,name,delimiter)
+	 						: new FixedFieldDeclaration(line,column,type,name,length);	
+	 }
 	
 }
 

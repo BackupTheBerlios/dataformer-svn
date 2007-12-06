@@ -7,6 +7,8 @@ import java.io.IOException;
 import cz.dataformer.ast.ComponentDeclaration;
 import cz.dataformer.ast.Transformation;
 import cz.dataformer.ast.body.BodyDeclaration;
+import cz.dataformer.ast.record.FieldDeclaration;
+import cz.dataformer.ast.record.RecordDeclaration;
 
 public class GraphRunner {
 
@@ -23,6 +25,13 @@ public class GraphRunner {
 				System.out.println("Component: " + cd.getName());
 				for (BodyDeclaration bd : cd.getMembers()) {
 					System.out.println(bd.getClass().getCanonicalName());
+				}
+			}
+			
+			for (RecordDeclaration rd : trans.getRecords()) {
+				System.out.println("record " + rd.getName());
+				for (FieldDeclaration fd : rd.getFields()) {
+					System.out.println("\t field " + fd.getName());
 				}
 			}
 //			((SimpleNode)parser.jjtree.rootNode()).dump("");
