@@ -1076,44 +1076,39 @@ void StreamStatement():
 
 
 void ComponentVariableDeclaration():
-{}
 {
-	ComponentClassName() 
-	ComponentInputOutputTypeList()
-	<IDENTIFIER>
-	[ ComponentInlineImplementation() ] ";"	
+	NameExpression className;
+	List ioTypes = null;
+	String name = null;
+}
+{
+	className = ComponentClassName() 
+	ioTypes = ComponentInputOutputTypes()
+	<IDENTIFIER> { name=token.image; }
+	[ "{" ComponentBodyDeclaration() "}" ] ";"	
 }
 
-void ComponentInputOutputTypeList() :
-{}
+List ComponentInputOutputTypes() :
 {
-	"<" ComponentInputOutputType() ( "," ComponentInputOutputType() )* ">"
+	Type t = null;
+	List ret = null;
 }
-
-void ComponentInputOutputType() :
-{}
 {
-	<IDENTIFIER>
-}
-
-void ComponentClassName() :
-{}
-{
-	<IDENTIFIER>
-}
-
+	"<" t = Type() { ret=add(ret,t); } ( "," t = Type() { add(ret,t); })* ">"
 	
-void ComponentInlineImplementation() :
-{}
-{
-	"{" 
-		ComponentBodyDeclaration() 
-	"}"
+	{ return ret; }
 }
 
 
-
-
+NameExpression ComponentClassName() :
+{
+	NameExpression name = null;
+}
+{
+	name = Name()
+	
+	{ return name; }
+}
 
 
 RecordDeclaration RecordDeclaration() : {
