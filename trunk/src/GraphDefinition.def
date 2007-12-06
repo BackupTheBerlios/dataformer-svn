@@ -65,7 +65,7 @@ public transformation MyTransformation {
 	
 	
 	graph {
-		connect reader.output -> filter.input
-		connect filter.validOutput -> trashBin.input
+		connect reader.output -> filter.input;
+		connect filter.validOutput -> trashBin.input;
 	}
 }
