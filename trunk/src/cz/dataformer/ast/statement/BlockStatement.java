@@ -6,7 +6,7 @@ package cz.dataformer.ast.statement;
 import java.util.List;
 
 /**
- * @author Julio Vilmar Gesser
+ * @author mtomcany
  */
 public final class BlockStatement extends Statement {
 

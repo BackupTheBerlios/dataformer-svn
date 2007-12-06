@@ -259,8 +259,11 @@ Transformation Transformation() :
 {
 	List components = null;
 	List records = null;
+	List vars = null;
+	List graph = null;
 	ComponentDeclaration cd;
 	RecordDeclaration rd;
+	ComponentVariableDeclaration cv;
 	String name;
 	int line,column;
 }
@@ -271,13 +274,13 @@ Transformation Transformation() :
 		| 
 		rd = RecordDeclaration() { records = add(records,rd); }
 		|
-		ComponentVariableDeclaration()
+		cv = ComponentVariableDeclaration() { vars = add(vars,cv); }
 		) 
 	)*
-	ComponentConnection()
+	graph = GraphDeclaration()
 	"}"
 	
-	{ return new Transformation(line,column,name,components,records); }
+	{ return new Transformation(line,column,name,components,records,vars,graph); }
 	
 }
 
@@ -325,17 +328,30 @@ List ComponentBodyDeclaration() :
   	{ return ret; }
 }
 
-/*
- * Components connection into transformation graph
- */
-void ComponentConnection() : {
+List GraphDeclaration() : 
+{
+	List ret = null;
+	ConnectStatement cs;
 }
 {
 	"graph" "{"
-	( "connect" <IDENTIFIER> "." <IDENTIFIER> "->" 
-				<IDENTIFIER> "." <IDENTIFIER>) *	
+	cs = ConnectStatement() { ret=add(ret,cs); }  ( cs = ConnectStatement() { add(ret,cs); } ) *	
 	"}"
+	
+	{ return ret; }
 }
+
+ConnectStatement ConnectStatement() :
+{
+	NameExpression sourcePort;
+	NameExpression destPort;
+}
+{
+	"connect" sourcePort = Name() "->" destPort = Name() ";"
+	
+	{ return new ConnectStatement(sourcePort.getLine(),sourcePort.getColumn(),sourcePort,destPort); }
+}
+
 
 Port Port(Modifiers modifiers) : 
 {
@@ -1075,17 +1091,21 @@ void StreamStatement():
 }
 
 
-void ComponentVariableDeclaration():
+ComponentVariableDeclaration ComponentVariableDeclaration():
 {
 	NameExpression className;
 	List ioTypes = null;
 	String name = null;
+	List body = null;
+	
 }
 {
 	className = ComponentClassName() 
 	ioTypes = ComponentInputOutputTypes()
 	<IDENTIFIER> { name=token.image; }
-	[ "{" ComponentBodyDeclaration() "}" ] ";"	
+	[ "{" body = ComponentBodyDeclaration() "}" ] ";"
+	
+	{ return new ComponentVariableDeclaration(className.getLine(),className.getColumn(),ioTypes,name,body); }	
 }
 
 List ComponentInputOutputTypes() :
