@@ -118,7 +118,13 @@ TOKEN :
 /* >'s need special attention due to generics syntax. */
 TOKEN :
 {
- < RSIGNEDSHIFT: ">>" >
+ < RUNSIGNEDSHIFT: ">>>" >
+  {
+     matchedToken.kind = GT;
+     ((GTToken)matchedToken).realKind = RUNSIGNEDSHIFT;
+     input_stream.backup(2);
+  }
+ | < RSIGNEDSHIFT: ">>" >
   {
      matchedToken.kind = GT;
      ((GTToken)matchedToken).realKind = RSIGNEDSHIFT;
@@ -509,46 +515,6 @@ ClassOrInterfaceType ClassOrInterfaceType():
   { return ret; }
 }
 
-List TypeArguments():
-{
-	List ret = new LinkedList();
-	Type type;
-}
-{
-   "<" type = TypeArgument() { ret.add(type); } ( "," type = TypeArgument() { ret.add(type); } )* ">"
-   { return ret; }
-}
-
-Type TypeArgument():
-{
-	Type ret;
-}
-{
- (
-   ret = ReferenceType()
- |
-   ret = Wildcard()
- )
- { return ret; }
-}
-
-WildcardType Wildcard():
-{
-	ReferenceType ext = null;
-	ReferenceType sup = null;
-	int line;
-	int column;
-}
-{
-   "?" {line=token.beginLine; column=token.beginColumn;}
-   [
-		"extends" ext = ReferenceType()
-	|
-		"super" sup = ReferenceType()
-   ]
-   { return new WildcardType(line, column, ext, sup); }
-}
-
 NameExpression Name():
 /*
  * A lookahead of 2 is required below since "Name" can be followed
@@ -624,8 +590,6 @@ Parameter FormalParameter():
   { return new Parameter(type.getLine(),type.getColumn(),mods,type,isVarArg,id); }
 }
 
-
-
 BlockStatement Block():
 {
 	Statement s;
@@ -649,8 +613,6 @@ MainBlock MainBlock() :
 
 	{ return new MainBlock(line,column,block); }
 }
-
-
 
 Type PrimitiveType():
 {
@@ -700,7 +662,6 @@ VariableDeclarationExpression LocalVariableDeclaration():
 	VariableDeclarator var;
 	List declarators = null;
 }
-
 {
   modifiers = Modifiers() 
   type = Type() 
@@ -740,7 +701,6 @@ Expression VariableInitializer():
 	Expression expr;
 }
 {
-	
   expr = ArrayInitializer()|
   expr = Expression()
   
@@ -762,126 +722,314 @@ ArrayInitializerExpr ArrayInitializer():
   { return new ArrayInitializerExpr(line, column, values); }
 }
 
-Expression Expression() #void:
-{}
+Expression Expression() :
 {
-  LOOKAHEAD( PrimaryExpression() "=" )
-  Assignment()
-|
-  ConditionalExpression()
-  
-  { return null; }
+	Expression ret;
+	AssignOperatorEnum op;
+	Expression value = null;
+}
+{
+/*
+ * This expansion has been written this way instead of:
+ *   Assignment() | ConditionalExpression()
+ * for performance reasons.
+ * However, it is a weakening of the grammar for it allows the LHS of
+ * assignments to be any conditional expression whereas it can only be
+ * a primary expression.  
+ * Java language specification 3.0 section 15.26 explains the primary expression
+ * can only be: 
+ * 1. Name expression
+ * 2. Field access
+ * 3. Array access
+ * 
+ */
+   ret = ConditionalExpression()
+  [
+    LOOKAHEAD(2)
+    (
+    	op = AssignmentOperator() value = Expression() 
+    	{ 
+    	if ( (ret instanceof NameExpression)
+   				||
+   			 (ret instanceof FieldAccessExpression)
+   			    ||
+   			 (ret instanceof ArrayAccessExpression) ) {
+   			 	// assignment to valid target
+    			ret = new AssignmentExpression(ret.getLine(), ret.getColumn(), ret, value, op); 
+   			 }
+   		else {
+   			// conditional (or other) expression on the left side -> error
+			throw new ParseException(token,
+			"Line: " + ret.getLine() + " " +
+			"Column: " + ret.getColumn() + ": " + 
+			"Assignment target not one of: name expression, field access, array access"); 
+   		 }	
+	    }
+    )
+  ]
+  { return ret; }
+	
 }
 
-void Assignment() :
-{}
+Expression ConditionalExpression():
 {
-  PrimaryExpression() "=" Expression()
+	Expression ret;
+	Expression left;
+	Expression right;
+}
+{
+  ret = ConditionalOrExpression() [ "?" left = Expression() ":" right = Expression() { ret = new ConditionalExpression(ret.getLine(), ret.getColumn(), ret, left, right); } ]
+  { return ret; }
 }
 
-void ConditionalExpression():
-{}
+Expression ConditionalOrExpression():
 {
-  ConditionalOrExpression() [ "?" Expression() ":" Expression() ]
+	Expression ret;
+	Expression right;
+}
+{
+  ret = ConditionalAndExpression() ( "||" right = ConditionalAndExpression() { ret = new BinaryExpression(ret.getLine(), ret.getColumn(), ret, right, BinaryOperatorEnum.OR); } )*
+  { return ret; }
 }
 
-void ConditionalOrExpression():
-{}
+
+Expression ConditionalAndExpression():
 {
-  ConditionalAndExpression() ( "||" ConditionalAndExpression() )*
+	Expression ret;
+	Expression right;
+}
+{
+  ret = InclusiveOrExpression() ( "&&" right = InclusiveOrExpression() { ret = new BinaryExpression(ret.getLine(), ret.getColumn(), ret, right, BinaryOperatorEnum.AND); } )*
+  { return ret; }
 }
 
-void ConditionalAndExpression():
-{}
+Expression InclusiveOrExpression():
 {
-  InclusiveOrExpression() ( "&&" InclusiveOrExpression() )*
+	Expression ret;
+	Expression right;
+}
+{
+  ret = ExclusiveOrExpression() ( "|" right = ExclusiveOrExpression() { ret = new BinaryExpression(ret.getLine(), ret.getColumn(), ret, right, BinaryOperatorEnum.BIN_OR); } )*
+  { return ret; }
 }
 
-void InclusiveOrExpression():
-{}
+Expression ExclusiveOrExpression():
 {
-  ExclusiveOrExpression() ( "|" ExclusiveOrExpression() )*
+	Expression ret;
+	Expression right;
+}
+{
+  ret = AndExpression() ( "^" right = AndExpression() { ret = new BinaryExpression(ret.getLine(), ret.getColumn(), ret, right, BinaryOperatorEnum.XOR); } )*
+  { return ret; }
 }
 
-void ExclusiveOrExpression():
-{}
+Expression AndExpression():
 {
-  AndExpression() ( "^" AndExpression() )*
+	Expression ret;
+	Expression right;
+}
+{
+  ret = EqualityExpression() ( "&" right = EqualityExpression() { ret = new BinaryExpression(ret.getLine(), ret.getColumn(), ret, right, BinaryOperatorEnum.BIN_AND); } )*
+  { return ret; }
 }
 
-void AndExpression():
-{}
+Expression EqualityExpression():
 {
-  EqualityExpression() ( "&" EqualityExpression() )*
+	Expression ret;
+	Expression right;
+	BinaryOperatorEnum op;
+}
+{
+  ret = RelationalExpression() 
+  ( 
+    ( "==" { op = BinaryOperatorEnum.EQUALS; } | 
+      "!=" { op = BinaryOperatorEnum.NOT_EQUALS; } 
+    ) right = RelationalExpression() { ret = new BinaryExpression(ret.getLine(), ret.getColumn(), ret, right, op); } 
+  )*
+  { return ret; }
 }
 
-void EqualityExpression():
-{}
+
+Expression RelationalExpression():
 {
-  RelationalExpression() ( ( "==" | "!=" ) RelationalExpression() )*
+	Expression ret;
+	Expression right;
+	BinaryOperatorEnum op;
+}
+{
+  ret = ShiftExpression() 
+  (
+  	( "<"  { op = BinaryOperatorEnum.LESS; } | 
+  	  ">"  { op = BinaryOperatorEnum.GREATER; } | 
+  	  "<=" { op = BinaryOperatorEnum.LESS_EQUALS; } | 
+  	  ">=" { op = BinaryOperatorEnum.GREATER_EQUALS; }
+  	) right = ShiftExpression() { ret = new BinaryExpression(ret.getLine(), ret.getColumn(), ret, right, op); }
+  )*
+  { return ret; }
 }
 
-void RelationalExpression():
-{}
+Expression ShiftExpression():
 {
-  ShiftExpression() ( ( "<" | ">" | "<=" | ">=" ) ShiftExpression() )*
+	Expression ret;
+	Expression right;
+	BinaryOperatorEnum op;
+}
+{
+  ret = AdditiveExpression()
+  (
+  	( "<<"             { op = BinaryOperatorEnum.L_SHIFT; } | 
+  	  RSIGNEDSHIFT()   { op = BinaryOperatorEnum.R_SIGNED_SHIFT; } | 
+  	  RUNSIGNEDSHIFT() { op = BinaryOperatorEnum.R_UNSIGNED_SHIFT; }
+  	) right = AdditiveExpression() { ret = new BinaryExpression(ret.getLine(), ret.getColumn(), ret, right, op); }
+  )*
+  { return ret; }
 }
 
-void ShiftExpression():
-{}
+
+Expression StreamOperationExpression() :
 {
-	AdditiveExpression() ( ( "<<" | RSIGNEDSHIFT() ) AdditiveExpression() )*
+	Expression left;
+	Expression right;
+	boolean isWrite = false;
+}
+{
+	left = PrimaryExpression() // primary expression allows to write into stream from method call
+	 ( 
+	 	"<<" 
+	   	| 
+	   	RSIGNEDSHIFT()  { isWrite = true; }
+	 ) 
+	 right = Name() // name is more-than enough here as it should always refer to a non-qualified port
+	 
+	{ return new StreamOperationExpression(left.getLine(),left.getColumn(),left,right,isWrite); }
 }
 
-void AdditiveExpression():
-{}
+Expression AdditiveExpression():
 {
-  MultiplicativeExpression() ( ( "+" | "-" ) MultiplicativeExpression() )*
+	Expression ret;
+	Expression right;
+	BinaryOperatorEnum op;
+}
+{
+  ret = MultiplicativeExpression() 
+  ( 
+  	( "+" { op = BinaryOperatorEnum.PLUS; } | 
+  	  "-" { op = BinaryOperatorEnum.MINUS; }
+  	) right = MultiplicativeExpression() { ret = new BinaryExpression(ret.getLine(), ret.getColumn(), ret, right, op); }
+  )*
+  { return ret; }
 }
 
-void MultiplicativeExpression():
-{}
+Expression MultiplicativeExpression():
 {
-  UnaryExpression() ( ( "*" | "/" | "%" ) UnaryExpression() )*
+	Expression ret;
+	Expression right;
+	BinaryOperatorEnum op;
+}
+{
+  ret = UnaryExpression() 
+  ( 
+  	( "*" { op = BinaryOperatorEnum.TIMES; } | 
+  	  "/" { op = BinaryOperatorEnum.DIVIDE; } |
+  	  "%" { op = BinaryOperatorEnum.REMAINDER; }
+  	) right = UnaryExpression() { ret = new BinaryExpression(ret.getLine(), ret.getColumn(), ret, right, op); }
+  )*
+  { return ret; }
 }
 
-void UnaryExpression():
-{}
+Expression UnaryExpression():
 {
-  ( "+" | "-" ) UnaryExpression()
-|
-  PreIncrementExpression()
-|
-  PreDecrementExpression()
-|
-  UnaryExpressionNotPlusMinus()
+	Expression ret;
+	UnaryOperatorEnum op;
+	int line = 0;
+	int column = 0;
+}
+{
+  (
+	  ( "+" { op = UnaryOperatorEnum.POSITIVE; line=token.beginLine; column=token.beginColumn;} | 
+	    "-" { op = UnaryOperatorEnum.NEGATIVE; line=token.beginLine; column=token.beginColumn;}
+	  ) ret = UnaryExpression() 
+	  {
+	  	 if(op == UnaryOperatorEnum.NEGATIVE) {
+	  	 	if (ret instanceof IntegerLiteralExpression && ((IntegerLiteralExpression)ret).isMinValue()) {
+	  	 		ret = new IntegerLiteralMinValueExpression(ret.getLine(), ret.getColumn());
+	  	 	} else if (ret instanceof LongLiteralExpression && ((LongLiteralExpression)ret).isMinValue()) {
+	  	 		ret = new LongLiteralMinValueExpression(ret.getLine(), ret.getColumn());
+	  	 	} else {
+	  	 		ret = new UnaryExpression(line, column, ret, op);
+	  	 	}
+	  	 } else {
+	  	 	ret = new UnaryExpression(line, column, ret, op);
+	  	 }
+	  }
+	|
+	  ret = PreIncrementExpression()
+	|
+	  ret = PreDecrementExpression()
+	|
+	  ret = UnaryExpressionNotPlusMinus()
+  )
+  { return ret; }
 }
 
-void PreIncrementExpression():
-{}
+Expression PreIncrementExpression():
 {
-  "++" PrimaryExpression()
+	Expression ret;
+	int line;
+	int column;
+}
+{
+  "++" {line=token.beginLine; column=token.beginColumn;} ret = PrimaryExpression() { ret = new UnaryExpression(line, column, ret, UnaryOperatorEnum.PRE_INCREMENT); }
+  { return ret; }
 }
 
-void PreDecrementExpression():
-{}
+Expression PreDecrementExpression():
 {
-  "--" PrimaryExpression()
+	Expression ret;
+	int line;
+	int column;
+}
+{
+  "--" {line=token.beginLine; column=token.beginColumn;} ret = PrimaryExpression() { ret = new UnaryExpression(line, column, ret, UnaryOperatorEnum.PRE_DECREMENT); }
+  { return ret; }
 }
 
-void UnaryExpressionNotPlusMinus():
-{}
+Expression UnaryExpressionNotPlusMinus():
 {
-  ( "~" | "!" ) UnaryExpression()
-|
-  PostfixExpression()
+	Expression ret;
+	UnaryOperatorEnum op;
+	int line = 0;
+	int column = 0;
+}
+{
+  (
+	  ( "~" { op = UnaryOperatorEnum.INVERSE; line=token.beginLine; column=token.beginColumn;} | 
+	    "!" { op = UnaryOperatorEnum.NOT;     line=token.beginLine; column=token.beginColumn;}
+	  ) ret = UnaryExpression() { ret = new UnaryExpression(line, column, ret, op); }
+	|
+	  ret = PostfixExpression()
+  )
+  { return ret; }
 }
 
-void PostfixExpression():
-{}
+Expression PostfixExpression():
 {
-  PrimaryExpression() [ "++" | "--" ]
+	Expression ret;
+	UnaryOperatorEnum op;
+	int line = 0;
+	int column = 0;
 }
+{
+  ret = PrimaryExpression() 
+  [
+  	LOOKAHEAD(2)  
+    ( "++" { op = UnaryOperatorEnum.POS_INCREMENT; line=token.beginLine; column=token.beginColumn;} | 
+      "--" { op = UnaryOperatorEnum.POS_DECREMENT; line=token.beginLine; column=token.beginColumn;}
+    ) { ret = new UnaryExpression(line, column, ret, op); }
+  ]
+  { return ret; }
+}
+
 
 Expression PrimaryExpression():
 {
@@ -946,13 +1094,6 @@ Expression PrimarySuffix(Expression scope):
 }
 
 
-void Id() :
-{
-}
-{
-   <IDENTIFIER>  
-}
-
 Expression Literal():
 {
 	Expression ret;
@@ -986,41 +1127,84 @@ Statement Statement():{
 	Statement ret;
 }{
 //  LOOKAHEAD(2)//  LabeledStatement()//|//  AssertStatement()//|
-(  ret = Block()|  ret = EmptyStatement()|  StatementExpression() ";"//|//  SwitchStatement()|  IfStatement()|  WhileStatement()//|//  DoStatement()//|//  ForStatement()//|//  BreakStatement()//|//  ContinueStatement()|  ReturnStatement()//|//  ThrowStatement()//|//  SynchronizedStatement()//|//  TryStatement()
+(  ret = Block()|  ret = EmptyStatement()|  ret = StatementExpression() ";"//|//  SwitchStatement()|  ret = IfStatement()|  ret = WhileStatement()
+|  ret = DoStatement()//|//  ForStatement()//|//  BreakStatement()//|//  ContinueStatement()|  ret = ReturnStatement()//|//  ThrowStatement()//|//  SynchronizedStatement()//|//  TryStatement()
 
 )
-	{ return null; }}EmptyStatement EmptyStatement():{}{  ";"
+	{ return ret; }}EmptyStatement EmptyStatement():{}{  ";"
   { return new EmptyStatement(token.beginLine, token.beginColumn); }}
 
-void IfStatement():
+IfStatement IfStatement():
 /*
  * The disambiguating algorithm of JavaCC automatically binds dangling
  * else's to the innermost if statement.  The LOOKAHEAD specification
  * is to tell JavaCC that we know what we are doing.
  */
-{}
 {
-  "if" "(" Expression() ")" Statement() [ LOOKAHEAD(1) "else" Statement() ]
+	Expression condition;
+	Statement thenStmt;
+	Statement elseStmt = null;
+	int line;
+	int column;
+}
+{
+  "if" {line=token.beginLine; column=token.beginColumn;} "(" 
+  		condition = Expression() 
+  ")" thenStmt = Statement() 
+  [ LOOKAHEAD(1) "else" elseStmt = Statement() ]
+  { return new IfStatement(line, column, condition, thenStmt, elseStmt); }
 }
 
-void WhileStatement():
-{}
+WhileStatement WhileStatement():
 {
-  "while" "(" Expression() ")" Statement()
+	Expression condition;
+	Statement body;
+	int line;
+	int column;
+}
+{
+  "while" {line=token.beginLine; column=token.beginColumn;} "(" 
+  	condition = Expression() 
+  ")" body = Statement()
+  { return new WhileStatement(line, column, condition, body); }
 }
 
-void DoStatement():
-{}
+DoStatement DoStatement():
 {
-  "do" Statement() "while" "(" Expression() ")" ";"
+	Expression condition;
+	Statement body;
+	int line; 
+	int column;
+}
+{
+  "do" {line=token.beginLine; column=token.beginColumn;} body = Statement() 
+  "while" "(" condition = Expression() ")" ";"
+  { return new DoStatement(line, column, body, condition); }
 }
 
-void ReturnStatement():
-{}
+ReturnStatement ReturnStatement():
 {
-  "return" [ Expression() ] ";"
+	Expression expr = null;
+	int line;
+	int column;
+}
+{
+  "return" {line=token.beginLine; column=token.beginColumn;} [ expr = Expression() ] ";"
+  { return new ReturnStatement(line, column, expr); }
 }
 
+/* 
+ * We use productions to match >>>, >> and > so that we can keep the
+ * type declaration syntax with generics clean
+ */
+void RUNSIGNEDSHIFT():
+{}
+{
+  ( LOOKAHEAD({ getToken(1).kind == GT &&
+                ((GTToken)getToken(1)).realKind == RUNSIGNEDSHIFT} )
+   ">" ">" ">"
+  )
+}
 
 void RSIGNEDSHIFT():
 {}
@@ -1051,45 +1235,61 @@ List ArgumentList():
   { return ret; }
 }
 
-void StatementExpression():
+ExpressionStatement StatementExpression():
 /*
  * The last expansion of this production accepts more than the legal
  * Java expansions for StatementExpression.  This expansion does not
  * use PostfixExpression for performance reasons.
  */
-{}
 {
-  PreIncrementExpression()
-|
-  PreDecrementExpression()
-|
-  PrimaryExpression()
-  [
-    "++"
-  |
-    "--"
-  |
-    AssignmentOperator() Expression()
-  |
-  	StreamStatement()
-  ]
+	Expression expr;
+	AssignOperatorEnum op;
+	Expression value;
+}
+{
+	(
+  		LOOKAHEAD(2)
+  		expr = StreamOperationExpression()
+		|
+  		expr = PreIncrementExpression()
+		|
+  		expr = PreDecrementExpression()
+		| 
+  		expr = PrimaryExpression()
+  		[
+    		"++" { expr = new UnaryExpression(expr.getLine(),expr.getColumn(),expr,UnaryOperatorEnum.PRE_INCREMENT); }
+  			|
+    		"--" { expr = new UnaryExpression(expr.getLine(),expr.getColumn(),expr,UnaryOperatorEnum.PRE_DECREMENT); }
+  			|
+    		op = AssignmentOperator() value = Expression()
+    		{ expr = new AssignmentExpression(expr.getLine(),expr.getColumn(),expr,value,op); }
+  		]
+  	)
   
+  { return new ExpressionStatement(expr.getLine(),expr.getColumn(),expr); }
 }
 
-void AssignmentOperator():
-{}
+AssignOperatorEnum AssignmentOperator():
 {
-  "=" | "*=" | "/=" | "%=" | "+=" | "-=" | "<<=" | ">>=" | ">>>=" | "&=" | "^=" | "|="
+	AssignOperatorEnum ret;
 }
-
-
-void StreamStatement():
-{}
 {
-	( "<<" | RSIGNEDSHIFT() )
-	Id()
+	(
+      "="    { ret = AssignOperatorEnum.ASSIGN; }
+    | "*="   { ret = AssignOperatorEnum.STAR; }
+    | "/="   { ret = AssignOperatorEnum.SLASH; }
+    | "%="   { ret = AssignOperatorEnum.REM; }
+    | "+="   { ret = AssignOperatorEnum.PLUS; }
+    | "-="   { ret = AssignOperatorEnum.MINUS; }
+    | "<<="  { ret = AssignOperatorEnum.L_SHIFT; }
+    | ">>="  { ret = AssignOperatorEnum.R_SIGNED_SHIFT; }
+    | ">>>=" { ret = AssignOperatorEnum.R_UNSIGNED_SHIFT; }
+    | "&="   { ret = AssignOperatorEnum.AND; }
+    | "^="   { ret = AssignOperatorEnum.XOR; }
+    | "|="   { ret = AssignOperatorEnum.OR; }
+  )
+  { return ret; }
 }
-
 
 ComponentVariableDeclaration ComponentVariableDeclaration():
 {

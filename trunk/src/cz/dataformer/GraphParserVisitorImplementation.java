@@ -332,11 +332,6 @@ public class GraphParserVisitorImplementation implements GraphParserVisitor {
 		return null;
 	}
 
-	public Object visit(ASTStreamStatement node, Object data) throws VisitorException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 	public Object visit(ASTComponentFieldDeclaration node, Object data) throws VisitorException {
 		// TODO Auto-generated method stub
 		return null;
@@ -448,6 +443,21 @@ public class GraphParserVisitorImplementation implements GraphParserVisitor {
 	}
 
 	public Object visit(ASTConnectStatement node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTExpression node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTRUNSIGNEDSHIFT node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTStreamOperationExpression node, Object data) throws VisitorException {
 		// TODO Auto-generated method stub
 		return null;
 	}
