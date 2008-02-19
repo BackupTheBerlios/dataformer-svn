@@ -8,11 +8,11 @@ import cz.dataformer.ast.statement.ConnectStatement;
 
 public class Transformation extends DataFormerNode {
 
-	private String name;
-	private List<ComponentDeclaration> components;
-	private List<RecordDeclaration> records;
-	private List<ComponentVariableDeclaration> variables;
-	private List<ConnectStatement> graph;
+	public String name;
+	public List<ComponentDeclaration> components;
+	public List<RecordDeclaration> records;
+	public List<ComponentVariableDeclaration> variables;
+	public List<ConnectStatement> graph;
 
 	public Transformation(int line, int column, String name, List<ComponentDeclaration> components, List<RecordDeclaration> records, List<ComponentVariableDeclaration> variables, List<ConnectStatement> graph) {
 		super(line, column);
@@ -31,4 +31,8 @@ public class Transformation extends DataFormerNode {
 		return records;
 	}
 
+	public void accept(NodeVisitor v) {
+		v.visit(this);
+	}
+	
 }

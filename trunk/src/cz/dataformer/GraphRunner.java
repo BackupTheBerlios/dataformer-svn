@@ -2,7 +2,6 @@ package cz.dataformer;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 
 import cz.dataformer.ast.ComponentDeclaration;
 import cz.dataformer.ast.Transformation;
@@ -29,8 +28,8 @@ public class GraphRunner {
 			}
 			
 			for (RecordDeclaration rd : trans.getRecords()) {
-				System.out.println("record " + rd.getName());
-				for (FieldDeclaration fd : rd.getFields()) {
+				System.out.println("record " + rd.name);
+				for (FieldDeclaration fd : rd.fields) {
 					System.out.println("\t field " + fd.getName());
 				}
 			}
@@ -42,9 +41,6 @@ public class GraphRunner {
 			System.err.println("Input file not found:" + e.getMessage());
 		} catch (ParseException e) {
 			System.err.println("Parsing error occured: " + e.getMessage());
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		} 
 //		catch (VisitorException e) {
 //			// TODO Auto-generated catch block
