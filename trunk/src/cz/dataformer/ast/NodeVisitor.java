@@ -37,7 +37,7 @@ import cz.dataformer.ast.statement.IfStatement;
 import cz.dataformer.ast.statement.ReturnStatement;
 import cz.dataformer.ast.statement.WhileStatement;
 import cz.dataformer.ast.type.ClassOrInterfaceType;
-import cz.dataformer.ast.type.GenericType;
+import cz.dataformer.ast.type.IOTypeParameter;
 import cz.dataformer.ast.type.PrimitiveType;
 import cz.dataformer.ast.type.ReferenceType;
 import cz.dataformer.ast.type.VoidType;
@@ -84,7 +84,7 @@ public interface NodeVisitor {
 
     public void visit(ClassOrInterfaceType n);
 
-    public void visit(GenericType n);
+    public void visit(IOTypeParameter n);
     
     public void visit(PrimitiveType n);
 

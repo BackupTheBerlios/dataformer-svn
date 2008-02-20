@@ -34,7 +34,7 @@ import cz.dataformer.ast.statement.IfStatement;
 import cz.dataformer.ast.statement.ReturnStatement;
 import cz.dataformer.ast.statement.WhileStatement;
 import cz.dataformer.ast.type.ClassOrInterfaceType;
-import cz.dataformer.ast.type.GenericType;
+import cz.dataformer.ast.type.IOTypeParameter;
 import cz.dataformer.ast.type.PrimitiveType;
 import cz.dataformer.ast.type.ReferenceType;
 import cz.dataformer.ast.type.VoidType;
@@ -108,7 +108,7 @@ public class NodeVisitorImpl implements NodeVisitor {
 		
 	}
 
-	public void visit(GenericType n) {
+	public void visit(IOTypeParameter n) {
 		// TODO Auto-generated method stub
 		
 	}

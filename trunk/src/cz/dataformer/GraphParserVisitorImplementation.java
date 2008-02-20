@@ -72,16 +72,6 @@ public class GraphParserVisitorImplementation implements GraphParserVisitor {
 		return null;
 	}
 
-	public Object visit(ASTGenericTypeParameters node, Object data) throws VisitorException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public Object visit(ASTGenericTypeParameter node, Object data) throws VisitorException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 	public Object visit(ASTMethodDeclaration node, Object data) throws VisitorException {
 		// TODO Auto-generated method stub
 		return null;
@@ -368,6 +358,16 @@ public class GraphParserVisitorImplementation implements GraphParserVisitor {
 	}
 
 	public Object visit(ASTRecordDeclaration node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTIOTypeParameters node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTIOTypeParameter node, Object data) throws VisitorException {
 		// TODO Auto-generated method stub
 		return null;
 	}

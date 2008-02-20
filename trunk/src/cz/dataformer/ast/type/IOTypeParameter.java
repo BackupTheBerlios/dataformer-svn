@@ -8,11 +8,11 @@ import cz.dataformer.ast.NodeVisitor;
  * @author mtomcany
  *
  */
-public class GenericType extends Type {
+public class IOTypeParameter extends Type {
 
 	public final String name;
 	
-	public GenericType(int line, int column, String name) {
+	public IOTypeParameter(int line, int column, String name) {
 		super(line, column);
 		this.name = name;
 	}

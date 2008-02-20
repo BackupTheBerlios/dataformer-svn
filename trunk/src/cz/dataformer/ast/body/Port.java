@@ -1,16 +1,16 @@
 package cz.dataformer.ast.body;
 
 import cz.dataformer.ast.NodeVisitor;
-import cz.dataformer.ast.type.GenericType;
+import cz.dataformer.ast.type.IOTypeParameter;
 
 public class Port extends BodyDeclaration {
 
 	public Modifiers modifiers;
-	public GenericType genericType;
+	public IOTypeParameter genericType;
 	public String name;
 	
 	
-	public Port(int line, int column, Modifiers modifiers, String name, GenericType type) {
+	public Port(int line, int column, Modifiers modifiers, String name, IOTypeParameter type) {
 		super(line, column);
 		this.modifiers = modifiers;
 		this.name = name;

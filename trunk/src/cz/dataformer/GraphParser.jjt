@@ -329,19 +329,19 @@ ComponentDeclaration ComponentDeclaration(Modifiers mods) :
 {
 	int line, column;
 	String name;
-	List params;
+	List ioParams;
 	List members;
 	MainBlock main;
 }
 {
 	// Modifiers already matched in the caller!
 	"component" <IDENTIFIER> { line = token.beginLine; column = token.beginColumn; name = token.image; }
-	params = GenericTypeParameters() "{"
+	ioParams = IOTypeParameters() "{"
 		members = ComponentBodyDeclaration() 
 	  	main = MainBlock()
 	"}"
 	
-	{ return new ComponentDeclaration(line,column,mods,name,members,main); }
+	{ return new ComponentDeclaration(line,column,mods,name,ioParams,members,main); }
 }
 
 List ComponentBodyDeclaration() :
@@ -393,11 +393,11 @@ ConnectStatement ConnectStatement() :
 
 Port Port(Modifiers modifiers) : 
 {
-	GenericType type;
+	IOTypeParameter type;
 	String name;
 }
 {
-	 "port"  type = GenericTypeParameter()  <IDENTIFIER> { name = token.image; } ";"
+	 "port"  type = IOTypeParameter()  <IDENTIFIER> { name = token.image; } ";"
 	 { return new Port(type.getLine(),type.getColumn(),modifiers,name,type); }
 }
 
@@ -467,22 +467,22 @@ Modifiers Modifiers():
 /* 
 * Type parameters as defined in Java 1.5 grammar
 */
-List GenericTypeParameters() :{
+List IOTypeParameters() :{
 	List ret = null;
-	GenericType type;
-}{   "<" type = GenericTypeParameter() { ret = add(ret,type); } 
-   ( "," type = GenericTypeParameter() { add(ret,type); } )* ">"
+	IOTypeParameter type;
+}{   "<" type = IOTypeParameter() { ret = add(ret,type); } 
+   ( "," type = IOTypeParameter() { add(ret,type); } )* ">"
    
    { return ret; }}
 
 
-GenericType GenericTypeParameter():{
+IOTypeParameter IOTypeParameter():{
 	String name;
 	int line,column;
 }{   <IDENTIFIER> 
    { 
    	name = token.image; line=token.beginLine; column=token.beginColumn;
-   	return new GenericType(line,column,name);
+   	return new IOTypeParameter(line,column,name);
    } }MethodDeclaration MethodDeclaration(Modifiers modifiers):
 {
 	Type type;
