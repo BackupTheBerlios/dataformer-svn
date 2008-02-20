@@ -1,5 +1,7 @@
 package cz.dataformer.ast.type;
 
+import cz.dataformer.ast.NodeVisitor;
+
 
 /**
  * Represents type as from Java Generics
@@ -8,7 +10,7 @@ package cz.dataformer.ast.type;
  */
 public class GenericType extends Type {
 
-	private final String name;
+	public final String name;
 	
 	public GenericType(int line, int column, String name) {
 		super(line, column);
@@ -19,6 +21,14 @@ public class GenericType extends Type {
 		return name;
 	}
 	
+	@Override
+	public boolean isPrimitive() {
+		return false;
+	}
 	
+	@Override
+    public void accept(NodeVisitor v) {
+    	v.visit(this);
+    }
 
 }

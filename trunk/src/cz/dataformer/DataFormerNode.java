@@ -1,21 +1,22 @@
 package cz.dataformer;
 
+import cz.dataformer.ast.NodeVisitor;
 
-public class DataFormerNode {
 
-    private final int line;
+public abstract class DataFormerNode {
 
-    private final int column;
+    public final int line;
 
-    /**
-     * This attribute can store additional information from semantic analysis.
-     */
-    public Object data;
+    public final int column;
 
     public DataFormerNode(int line, int column) {
         this.line = line;
         this.column = column;
     }
+    
+    /** Visitor support method */
+    public abstract void accept(NodeVisitor v);
+    
     
     public int getLine() {
 		return line;

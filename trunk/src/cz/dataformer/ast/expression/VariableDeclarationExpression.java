@@ -5,6 +5,7 @@ package cz.dataformer.ast.expression;
 
 import java.util.List;
 
+import cz.dataformer.ast.NodeVisitor;
 import cz.dataformer.ast.body.Modifiers;
 import cz.dataformer.ast.body.VariableDeclarator;
 import cz.dataformer.ast.type.Type;
@@ -14,11 +15,9 @@ import cz.dataformer.ast.type.Type;
  */
 public final class VariableDeclarationExpression extends Expression {
 
-    public final Modifiers modifiers;
-
-    public final Type type;
-
-    public final List<VariableDeclarator> vars;
+    public Modifiers modifiers;
+    public Type type;
+    public List<VariableDeclarator> vars;
 
     public VariableDeclarationExpression(int line, int column, Modifiers modifiers, Type type, List<VariableDeclarator> vars) {
         super(line, column);
@@ -27,13 +26,8 @@ public final class VariableDeclarationExpression extends Expression {
         this.vars = vars;
     }
 
-//    @Override
-//    public <A> void accept(VoidVisitor<A> v, A arg) {
-//        v.visit(this, arg);
-//    }
-//
-//    @Override
-//    public <R, A> R accept(GenericVisitor<R, A> v, A arg) {
-//        return v.visit(this, arg);
-//    }
+    @Override
+    public void accept(NodeVisitor v) {
+    	v.visit(this);
+    }
 }

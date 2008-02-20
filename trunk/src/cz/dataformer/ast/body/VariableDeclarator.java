@@ -4,6 +4,7 @@
 package cz.dataformer.ast.body;
 
 import cz.dataformer.DataFormerNode;
+import cz.dataformer.ast.NodeVisitor;
 import cz.dataformer.ast.expression.Expression;
 
 /**
@@ -11,9 +12,9 @@ import cz.dataformer.ast.expression.Expression;
  */
 public final class VariableDeclarator extends DataFormerNode {
 
-    public final VariableDeclaratorId id;
+    public VariableDeclaratorId id;
 
-    public final Expression init;
+    public Expression init;
 
     public VariableDeclarator(int line, int column, VariableDeclaratorId id, Expression init) {
         super(line, column);
@@ -21,14 +22,9 @@ public final class VariableDeclarator extends DataFormerNode {
         this.init = init;
     }
 
-//    @Override
-//    public <A> void accept(VoidVisitor<A> v, A arg) {
-//        v.visit(this, arg);
-//    }
-//
-//    @Override
-//    public <R, A> R accept(GenericVisitor<R, A> v, A arg) {
-//        return v.visit(this, arg);
-//    }
+    @Override
+    public void accept(NodeVisitor v) {
+    	v.visit(this);
+    }
 
 }

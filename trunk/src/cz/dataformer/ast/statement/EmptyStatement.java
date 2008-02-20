@@ -3,6 +3,8 @@
  */
 package cz.dataformer.ast.statement;
 
+import cz.dataformer.ast.NodeVisitor;
+
 
 /**
  * @author mtomcany
@@ -13,13 +15,8 @@ public final class EmptyStatement extends Statement {
         super(line, column);
     }
 
-//    @Override
-//    public <A> void accept(VoidVisitor<A> v, A arg) {
-//        v.visit(this, arg);
-//    }
-//
-//    @Override
-//    public <R, A> R accept(GenericVisitor<R, A> v, A arg) {
-//        return v.visit(this, arg);
-//    }
+    @Override
+    public void accept(NodeVisitor v) {
+    	v.visit(this);
+    }
 }

@@ -3,6 +3,8 @@
  */
 package cz.dataformer.ast.expression;
 
+import cz.dataformer.ast.NodeVisitor;
+
 
 /**
  * Represents qualified name
@@ -18,14 +20,9 @@ public final class QualifiedNameExpression extends NameExpression {
         this.qualifier = scope;
     }
 
-//    @Override
-//    public <A> void accept(VoidVisitor<A> v, A arg) {
-//        v.visit(this, arg);
-//    }
-//
-//    @Override
-//    public <R, A> R accept(GenericVisitor<R, A> v, A arg) {
-//        return v.visit(this, arg);
-//    }
+    @Override
+    public void accept(NodeVisitor v) {
+    	v.visit(this);
+    }
 
 }

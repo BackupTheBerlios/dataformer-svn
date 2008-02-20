@@ -4,6 +4,7 @@
 package cz.dataformer.ast.body;
 
 import cz.dataformer.DataFormerNode;
+import cz.dataformer.ast.NodeVisitor;
 
 /**
  * Variable declarator 
@@ -11,8 +12,8 @@ import cz.dataformer.DataFormerNode;
  */
 public final class VariableDeclaratorId extends DataFormerNode {
 
-    public final String name;
-    public final int arrayCount;
+    public String name;
+    public int arrayCount;
 
     public VariableDeclaratorId(int line, int column, String name, int arrayCount) {
         super(line, column);
@@ -20,14 +21,9 @@ public final class VariableDeclaratorId extends DataFormerNode {
         this.arrayCount = arrayCount;
     }
 
-//    @Override
-//    public <A> void accept(VoidVisitor<A> v, A arg) {
-//        v.visit(this, arg);
-//    }
-//
-//    @Override
-//    public <R, A> R accept(GenericVisitor<R, A> v, A arg) {
-//        return v.visit(this, arg);
-//    }
+    @Override
+    public void accept(NodeVisitor v) {
+    	v.visit(this);
+    }
 
 }

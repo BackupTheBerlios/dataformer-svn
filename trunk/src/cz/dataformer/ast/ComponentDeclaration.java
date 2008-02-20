@@ -5,26 +5,25 @@ import java.util.List;
 import cz.dataformer.DataFormerNode;
 import cz.dataformer.ast.body.BodyDeclaration;
 import cz.dataformer.ast.body.MainBlock;
+import cz.dataformer.ast.body.Modifiers;
 
 public class ComponentDeclaration extends DataFormerNode {
 
-	private String name;
-	private List<BodyDeclaration> members;
-	private MainBlock main;
+	public Modifiers modifiers;
+	public String name;
+	public List<BodyDeclaration> members;
+	public MainBlock main;
 
-	public ComponentDeclaration(int line, int column, String name, List<BodyDeclaration> members, MainBlock main) {
+	public ComponentDeclaration(int line, int column, Modifiers mods, String name, List<BodyDeclaration> members, MainBlock main) {
 		super(line, column);
+		this.modifiers = mods;
 		this.name = name;
 		this.members = members;
 		this.main = main;
 	}
 
-	public String getName() {
-		return name;
+	@Override
+	public void accept(NodeVisitor v) {
+		v.visit(this);
 	}
-	
-	public List<BodyDeclaration> getMembers() {
-		return members;
-	}
-	
 }

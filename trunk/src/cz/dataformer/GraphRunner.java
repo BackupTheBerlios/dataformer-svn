@@ -20,17 +20,17 @@ public class GraphRunner {
 					new FileInputStream("C:/Local/eclipse/workspace/DataFormer/src/GraphDefinition.def"));
 //			parser.RecordDeclaration();
 			Transformation trans = parser.Transformation();
-			for (ComponentDeclaration cd : trans.getComponents()) {
-				System.out.println("Component: " + cd.getName());
-				for (BodyDeclaration bd : cd.getMembers()) {
+			for (ComponentDeclaration cd : trans.components) {
+				System.out.println("Component: " + cd.name);
+				for (BodyDeclaration bd : cd.members) {
 					System.out.println(bd.getClass().getCanonicalName());
 				}
 			}
 			
-			for (RecordDeclaration rd : trans.getRecords()) {
+			for (RecordDeclaration rd : trans.records) {
 				System.out.println("record " + rd.name);
 				for (FieldDeclaration fd : rd.fields) {
-					System.out.println("\t field " + fd.getName());
+					System.out.println("\t field " + fd.name);
 				}
 			}
 //			((SimpleNode)parser.jjtree.rootNode()).dump("");

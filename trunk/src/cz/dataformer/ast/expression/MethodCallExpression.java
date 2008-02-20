@@ -5,16 +5,16 @@ package cz.dataformer.ast.expression;
 
 import java.util.List;
 
+import cz.dataformer.ast.NodeVisitor;
+
 /**
  * @author mtomcany
  */
 public final class MethodCallExpression extends Expression {
 
-    public final Expression scope;
-
-    public final String name;
-
-    public final List<Expression> args;
+    public Expression scope;
+    public String name;
+    public List<Expression> args;
 
     public MethodCallExpression(int line, int column, Expression scope, String name, List<Expression> args) {
         super(line, column);
@@ -23,14 +23,9 @@ public final class MethodCallExpression extends Expression {
         this.args = args;
     }
 
-//    @Override
-//    public <A> void accept(VoidVisitor<A> v, A arg) {
-//        v.visit(this, arg);
-//    }
-//
-//    @Override
-//    public <R, A> R accept(GenericVisitor<R, A> v, A arg) {
-//        return v.visit(this, arg);
-//    }
+    @Override
+    public void accept(NodeVisitor v) {
+    	v.visit(this);
+    }
 
 }

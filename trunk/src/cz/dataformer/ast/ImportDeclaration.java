@@ -21,4 +21,8 @@ public final class ImportDeclaration extends DataFormerNode {
         this.isAsterisk = isAsterisk;
     }
 
+    @Override
+    public void accept(NodeVisitor v) {
+    	v.visit(this);
+    }
 }

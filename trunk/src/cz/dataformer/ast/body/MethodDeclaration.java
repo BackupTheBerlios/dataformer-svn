@@ -5,6 +5,7 @@ package cz.dataformer.ast.body;
 
 import java.util.List;
 
+import cz.dataformer.ast.NodeVisitor;
 import cz.dataformer.ast.expression.NameExpression;
 import cz.dataformer.ast.statement.BlockStatement;
 import cz.dataformer.ast.type.Type;
@@ -15,17 +16,17 @@ import cz.dataformer.ast.type.Type;
  */
 public final class MethodDeclaration extends BodyDeclaration {
 
-    public final Modifiers modifiers;
+    public Modifiers modifiers;
 
-    public final Type type;
+    public Type type;
 
-    public final String name;
+    public String name;
 
-    public final List<Parameter> parameters;
+    public List<Parameter> parameters;
 
-    public final List<NameExpression> throws_;
+    public List<NameExpression> throws_;
 
-    public final BlockStatement block;
+    public BlockStatement block;
 
     public MethodDeclaration(int line, int column, Modifiers modifiers, Type returnType, String name, List<Parameter> parameters, List<NameExpression> throws_, BlockStatement block) {
         super(line, column);
@@ -37,13 +38,8 @@ public final class MethodDeclaration extends BodyDeclaration {
         this.block = block;
     }
 
-//    @Override
-//    public <A> void accept(VoidVisitor<A> v, A arg) {
-//        v.visit(this, arg);
-//    }
-//
-//    @Override
-//    public <R, A> R accept(GenericVisitor<R, A> v, A arg) {
-//        return v.visit(this, arg);
-//    }
+    @Override
+    public void accept(NodeVisitor v) {
+    	v.visit(this);
+    }
 }

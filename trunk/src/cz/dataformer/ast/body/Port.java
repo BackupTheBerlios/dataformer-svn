@@ -1,12 +1,13 @@
 package cz.dataformer.ast.body;
 
+import cz.dataformer.ast.NodeVisitor;
 import cz.dataformer.ast.type.GenericType;
 
 public class Port extends BodyDeclaration {
 
-	private Modifiers modifiers;
-	private GenericType genericType;
-	private String name;
+	public Modifiers modifiers;
+	public GenericType genericType;
+	public String name;
 	
 	
 	public Port(int line, int column, Modifiers modifiers, String name, GenericType type) {
@@ -23,5 +24,10 @@ public class Port extends BodyDeclaration {
 	public boolean isOutput() {
 		return this.modifiers.isOutput();
 	}
+	
+	@Override
+    public void accept(NodeVisitor v) {
+    	v.visit(this);
+    }
 
 }

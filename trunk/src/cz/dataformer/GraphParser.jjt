@@ -269,25 +269,26 @@ Transformation Transformation() :
 	RecordDeclaration rd;
 	ComponentVariableDeclaration cv;
 	String name;
+	Modifiers topLevelMods,mods;
 	int line,column;
 }
 {
 	packageName = Package()
 	imports = Imports()
 	
-	Modifiers() "transformation" <IDENTIFIER> { line = token.beginLine; column = token.beginColumn; name = token.image; } "{"
-	( Modifiers() ( 
-		cd = ComponentDeclaration() { components = add(components,cd); }
+	topLevelMods = Modifiers() "transformation" <IDENTIFIER> { line = token.beginLine; column = token.beginColumn; name = token.image; } "{"
+	( mods = Modifiers() ( 
+		cd = ComponentDeclaration(mods) { components = add(components,cd); }
 		| 
-		rd = RecordDeclaration() { records = add(records,rd); }
+		rd = RecordDeclaration(mods) { records = add(records,rd); }
 		|
-		cv = ComponentVariableDeclaration() { vars = add(vars,cv); }
+		cv = ComponentVariableDeclaration(mods) { vars = add(vars,cv); }
 		) 
 	)*
 	graph = GraphDeclaration()
 	"}"
 	
-	{ return new Transformation(line,column,name,components,records,vars,graph,packageName,imports); }
+	{ return new Transformation(line,column,topLevelMods,name,components,records,vars,graph,packageName,imports); }
 	
 }
 
@@ -324,7 +325,7 @@ List Imports() :
 /*
  * Transformation component declaration
  */
-ComponentDeclaration ComponentDeclaration() : 
+ComponentDeclaration ComponentDeclaration(Modifiers mods) : 
 {
 	int line, column;
 	String name;
@@ -340,7 +341,7 @@ ComponentDeclaration ComponentDeclaration() :
 	  	main = MainBlock()
 	"}"
 	
-	{ return new ComponentDeclaration(line,column,name,members,main); }
+	{ return new ComponentDeclaration(line,column,mods,name,members,main); }
 }
 
 List ComponentBodyDeclaration() :
@@ -1332,7 +1333,7 @@ AssignOperatorEnum AssignmentOperator():
   { return ret; }
 }
 
-ComponentVariableDeclaration ComponentVariableDeclaration():
+ComponentVariableDeclaration ComponentVariableDeclaration(Modifiers mods):
 {
 	NameExpression className;
 	List ioTypes = null;
@@ -1346,7 +1347,7 @@ ComponentVariableDeclaration ComponentVariableDeclaration():
 	<IDENTIFIER> { name=token.image; }
 	[ "{" body = ComponentBodyDeclaration() "}" ] ";"
 	
-	{ return new ComponentVariableDeclaration(className.getLine(),className.getColumn(),ioTypes,name,body); }	
+	{ return new ComponentVariableDeclaration(className.getLine(),className.getColumn(),mods,ioTypes,name,body); }	
 }
 
 List ComponentInputOutputTypes() :
@@ -1372,7 +1373,7 @@ NameExpression ComponentClassName() :
 }
 
 
-RecordDeclaration RecordDeclaration() : {
+RecordDeclaration RecordDeclaration(Modifiers mods) : {
 	String name;
 	int line,column;
 	FieldDeclaration field = null;
@@ -1387,7 +1388,7 @@ RecordDeclaration RecordDeclaration() : {
 		( field = FieldDeclaration()  { add(fields,field); } )*
 	"}"
 	
-	{ return new RecordDeclaration(line,column,name,fields); }		
+	{ return new RecordDeclaration(line,column,mods,name,fields); }		
 }
 
 

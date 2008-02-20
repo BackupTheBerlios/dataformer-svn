@@ -3,31 +3,28 @@
  */
 package cz.dataformer.ast.expression;
 
+import cz.dataformer.ast.NodeVisitor;
+
 
 /**
  * Represents various types of names:
  * - package names in import
- * - qualified names in qualified expressions
+ * - parts of qualified names when using selectors or full qualification
  * 
  * @author mtomcany
  */
 public class NameExpression extends Expression {
 
-    public final String name;
+    public String name;
 
     public NameExpression(int line, int column, String name) {
         super(line, column);
         this.name = name;
     }
 
-//    @Override
-//    public <A> void accept(VoidVisitor<A> v, A arg) {
-//        v.visit(this, arg);
-//    }
-//
-//    @Override
-//    public <R, A> R accept(GenericVisitor<R, A> v, A arg) {
-//        return v.visit(this, arg);
-//    }
+    @Override
+    public void accept(NodeVisitor v) {
+    	v.visit(this);
+    }
 
 }
