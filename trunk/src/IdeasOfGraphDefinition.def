@@ -1,6 +1,10 @@
+package cz.dataformer.test;
+
+import cz.dataformer.someimport.*;
+
 public transformation MyTransformation {
 
-	public abstract component Filter<I> {
+	public component Filter<I> {
 		required property String someProperty;
 		out port I validOutput;
 		in port I input;
@@ -10,109 +14,92 @@ public transformation MyTransformation {
 		abstract boolean testCondition(I inputRecord);
 		
 		main {
-			I record;
-			while (record << input) {
-				if (testCondition(record)) {
-					record >> validOutput;
+			I rec;
+			while (rec << input) {
+				if (testCondition(rec)) {
+					rec >> validOutput;
 				} else {
-					record >> invalidOutput;
+					rec >> invalidOutput;
 				}
 			}
 		}
 	}
 
 
-	public abstract component Reader<T> {
-		required String fileName;
-		out port T outputPort;
+	public component Generator<T> {
+		public out port T output;
 		
-		protected abstract T parseRecord(final String line);
+		private T generateMessage();
 		
 		main {
-			BufferedReader rd = new BufferedReader(new FileReader(fileName));
-			String line = null;
-			T parsedRecord = null;
-			while ((line = rd.readLine()) != null) {
-				parsedRecord = parseRecord(line);
-				parsedRecord >> outputPort;
+			for (int i=0; i<3; i++) {
+				generateMessage() >> output;
 			}
-		}
-	}
-	
-	public component DelimitedReader<T> extends Reader<T> {
-		property String inputFileName;
-		property String delimiter;
-		
-	
-		public abstract void setField(T parsedRecord, int fieldNum, String tokenValue);
-	
-		private T parseRecord(final String line) {
-			StringTokeninzer tok = new StringTokenizer(line,delimiter);
-			int fieldNum = 0;
-			T parsedRecord; // initialized by empty record here
-			while (tok.hasMoreTokens()) {
-				setField(parsedRecord,fieldNum++,tok.nextToken());
+			
+			int[] mmb = {1,2,3};
+			for (int i : mmb) {
+				generateMessage() >> output;
 			}
-			return parsedRecord;
 		}
 	}
 
-	public abstract component Writer<T> {
-		property String outputFileName;
+
+	public abstract component TrashBin<T> {
 		public in port T input;
 		
-		public abstract writeField(T record, int fieldNum, BufferedWriter writer);
 		
 		main {
-			T record;
-			BufferedWriter writer = new BufferedWriter(new FileWriter(outputFileName));
-			int fieldNum = 0;
-			while (record << input) {
-				writeField(record,fieldNum++,writer);
+			T rec;
+			while (rec << input) {
+				// do nothing				
 			}
 		}
 	}
 
 
 	public record InputRecord {
-		int firstField("|");
-		boolean secondField("\n");
+		int firstField delimiter("|");
+		int secondField length(20);
+		boolean thirdField delimiter("\n");
 	}
 	
-	
-	// reader implementation
-	public component DelimitedReader<InputRecord> reader {
-		public void setField(InputRecord parsedRecord, int fieldNum, String tokenValue) {
-			if (fieldNum == 0) {
-				parsedRecord.firstField = Integer.parseInt(tokenValue);
-			} else {
-				parsedRecord.secondField = Boolean.parseBoolean(tokenValue);
-			}
-		}
-	}
-	
-	// filter implementation
-	public component Filter<InputRecord> filter {
-		public boolean testCondition(InputRecord record) {
-			return record.secondField;
-		}
+	public record TaggedRecord extends InputRecord {
+		- firstField; /* field removed */
+		- secondField; /* field removed */
 		
+		int thirdField delimiter("|"); /* field type+delimiter redefined */
+		boolean fourthField delimiter("\n"); /* added new field */
 	}
 	
-	// writer implementation
-	public component Writer<InputRecord> writer {
-		public void writeField(InputRecord record, int fieldNum, BufferedWriter writer) {
-			if (fieldNum == 0) {
-				writer.append(record.firstField);
-			} else {
-				writer.append(record.secondField.toString());
-			}
+	
+	// component as transformation field
+	private Generator<InputRecord> reader {
+		private InputRecord generateMessage() {
+	
+			InputRecord rec;
+			rec.firstField = 1;
+			rec.secondField = 2;
+			rec.thirdField = true;
+				
+			return rec;
 		}
-	}
+	};
+		
+	// filter inline implementation
+	private Filter<InputRecord> filter {
+		public boolean testCondition(InputRecord inputRec) {
+			return inputRec.secondField;
+		}
+	};
+	
+	// trash bin implementation
+	private TrashBin<InputRecord> trashBin;
 	
 	
 	graph {
-		connect reader.output -> filter.input
-		connect filter.validOutput -> writer.input
+		filter.someProperty = "abeceda";
+	
+		connect reader.output -> filter.input;
+		connect filter.validOutput -> trashBin.input;
 	}
 }
