@@ -72,10 +72,12 @@ public class Token {
    */
   public static final Token newToken(int ofKind)
   {
-     switch(ofKind)
-     {
-       default : return new Token();
-     }
+	  switch(ofKind)    {
+	     case GraphParserConstants.RSIGNEDSHIFT:
+	     case GraphParserConstants.GT:
+	    	 return new GTToken();
+	     default : return new Token();
+	  }
   }
 
 }
