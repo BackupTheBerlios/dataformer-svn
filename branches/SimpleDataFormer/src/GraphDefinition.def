@@ -1,0 +1,95 @@
+package cz.dataformer.test;
+
+import cz.dataformer.someimport.*;
+
+public transformation MyTransformation {
+
+	public component Filter<I> {
+		out port I validOutput;
+		in port I input;
+		optional out port I invalidOutput;
+		
+		
+		abstract boolean testCondition(I inputRecord);
+		
+		main {
+			I rec;
+			while (rec << input) {
+				if (testCondition(rec)) {
+					rec >> validOutput;
+				} else {
+					rec >> invalidOutput;
+				}
+			}
+		}
+	}
+
+
+	public component Generator<T> {
+		public out port T output;
+		
+		private T generateMessage();
+		
+		main {
+			for (int i=0; i<3; i++) {
+				generateMessage() >> output;
+			}
+			
+			int[] mmb = {1,2,3};
+			for (int i : mmb) {
+				generateMessage() >> output;
+			}
+		}
+	}
+
+
+	public abstract component TrashBin<T> {
+		public in port T input;
+		
+		
+		main {
+			T rec;
+			while (rec << input) {
+				// do nothing				
+			}
+		}
+	}
+
+
+	public record InputRecord {
+		int firstField delimiter("|");
+		int secondField length(20);
+		boolean thirdField delimiter("\n");
+	}
+	
+	// component as transformation field
+	private Generator<InputRecord> reader {
+		private InputRecord generateMessage() {
+	
+			InputRecord rec;
+			rec.firstField = 1;
+			rec.secondField = 2;
+			rec.thirdField = true;
+				
+			return rec;
+		}
+	};
+		
+	// filter inline implementation
+	private Filter<InputRecord> filter {
+		public boolean testCondition(InputRecord inputRec) {
+			return inputRec.secondField;
+		}
+	};
+	
+	// trash bin implementation
+	private TrashBin<InputRecord> trashBin;
+	
+	
+	graph {
+		trashBin.errorMessage = "Deleted record";
+	
+		connect reader.output -> filter.input;
+		connect filter.validOutput -> trashBin.input;
+	}
+}
