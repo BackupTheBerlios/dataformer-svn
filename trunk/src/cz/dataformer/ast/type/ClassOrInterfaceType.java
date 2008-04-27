@@ -14,16 +14,11 @@ public final class ClassOrInterfaceType extends Type {
 
     public ClassOrInterfaceType scope;
     public String name;
-
+    
     public ClassOrInterfaceType(int line, int column, ClassOrInterfaceType scope, String name) {
         super(line, column);
         this.scope = scope;
         this.name = name;
-    }
-    
-    @Override
-    public boolean isPrimitive() {
-    	return false;
     }
     
     @Override

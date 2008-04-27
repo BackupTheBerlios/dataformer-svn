@@ -13,12 +13,10 @@ import cz.dataformer.ast.NodeVisitor;
 public final class VariableDeclaratorId extends DataFormerNode {
 
     public String name;
-    public int arrayCount;
 
-    public VariableDeclaratorId(int line, int column, String name, int arrayCount) {
+    public VariableDeclaratorId(int line, int column, String name) {
         super(line, column);
         this.name = name;
-        this.arrayCount = arrayCount;
     }
 
     @Override

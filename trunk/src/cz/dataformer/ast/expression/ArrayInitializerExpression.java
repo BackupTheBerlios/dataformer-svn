@@ -10,11 +10,11 @@ import cz.dataformer.ast.NodeVisitor;
 /**
  * @author mtomcany
  */
-public final class ArrayInitializerExpr extends Expression {
+public final class ArrayInitializerExpression extends Expression {
 
     public List<Expression> values;
 
-    public ArrayInitializerExpr(int line, int column, List<Expression> values) {
+    public ArrayInitializerExpression(int line, int column, List<Expression> values) {
         super(line, column);
         this.values = values;
     }

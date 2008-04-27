@@ -4,13 +4,28 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
 import cz.dataformer.ast.ComponentDeclaration;
+import cz.dataformer.ast.NodeVisitorImpl;
 import cz.dataformer.ast.Transformation;
-import cz.dataformer.ast.body.BodyDeclaration;
-import cz.dataformer.ast.record.FieldDeclaration;
+import cz.dataformer.ast.body.VariableDeclaratorId;
 import cz.dataformer.ast.record.RecordDeclaration;
 
 public class GraphRunner {
 
+	private static class VisitorTest extends NodeVisitorImpl {
+		
+		public void visit(RecordDeclaration r) {
+			System.out.println("Visited record: " + r.name);
+		}
+		
+		public void visit(ComponentDeclaration n) {
+			System.out.println("Visited component: " + n.name);
+		}
+
+		public void visit(VariableDeclaratorId n) {
+			System.out.println("Local variable declaration: " + n.name);
+		}
+	}
+	
 	/**
 	 * @param args
 	 */
@@ -18,25 +33,12 @@ public class GraphRunner {
 		try {
 			GraphParser parser = new GraphParser(
 					new FileInputStream("C:/Local/eclipse/workspace/DataFormer/src/GraphDefinition.def"));
-//			parser.RecordDeclaration();
 			Transformation trans = parser.Transformation();
-			for (ComponentDeclaration cd : trans.components) {
-				System.out.println("Component: " + cd.name);
-				for (BodyDeclaration bd : cd.members) {
-					System.out.println(bd.getClass().getCanonicalName());
-				}
-			}
+		
 			
-			for (RecordDeclaration rd : trans.records) {
-				System.out.println("record " + rd.name);
-				for (FieldDeclaration fd : rd.fields) {
-					System.out.println("\t field " + fd.name);
-				}
-			}
-//			((SimpleNode)parser.jjtree.rootNode()).dump("");
-//			RecordParserGenerator gen = new RecordParserGenerator("cz.dataformer.metadata",
-//					(ASTRecordDeclaration)parser.jjtree.rootNode());
-//			gen.generateRecordParser();
+			VisitorTest test = new VisitorTest();
+			trans.accept(test);
+			
 		} catch (FileNotFoundException e) {
 			System.err.println("Input file not found:" + e.getMessage());
 		} catch (ParseException e) {

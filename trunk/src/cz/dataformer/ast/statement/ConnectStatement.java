@@ -1,14 +1,14 @@
 package cz.dataformer.ast.statement;
 
 import cz.dataformer.ast.NodeVisitor;
-import cz.dataformer.ast.expression.NameExpression;
+import cz.dataformer.ast.expression.Expression;
 
 public class ConnectStatement extends Statement {
 
-	public NameExpression sourcePort;
-	public NameExpression destPort;
+	public Expression sourcePort;
+	public Expression destPort;
 
-	public ConnectStatement(int line, int column, NameExpression sourcePort, NameExpression destPort) {
+	public ConnectStatement(int line, int column, Expression sourcePort, Expression destPort) {
 		super(line, column);
 		this.sourcePort = sourcePort;
 		this.destPort = destPort;

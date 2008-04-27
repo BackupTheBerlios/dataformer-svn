@@ -1,20 +1,22 @@
 package cz.dataformer.ast.body;
 
 import cz.dataformer.ast.NodeVisitor;
-import cz.dataformer.ast.type.IOTypeParameter;
+import cz.dataformer.ast.type.ClassOrInterfaceType;
+import cz.dataformer.compiler.symbol.VariableSymbol;
 
 public class Port extends BodyDeclaration {
 
 	public Modifiers modifiers;
-	public IOTypeParameter genericType;
+	public ClassOrInterfaceType ioType;
 	public String name;
+	public VariableSymbol symbol;
 	
 	
-	public Port(int line, int column, Modifiers modifiers, String name, IOTypeParameter type) {
+	public Port(int line, int column, Modifiers modifiers, String name, ClassOrInterfaceType type) {
 		super(line, column);
 		this.modifiers = modifiers;
 		this.name = name;
-		this.genericType = type;
+		this.ioType = type;
 	}
 	
 	public boolean isInput() {

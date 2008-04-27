@@ -9,6 +9,7 @@ import cz.dataformer.ast.NodeVisitor;
 import cz.dataformer.ast.expression.NameExpression;
 import cz.dataformer.ast.statement.BlockStatement;
 import cz.dataformer.ast.type.Type;
+import cz.dataformer.compiler.symbol.MethodSymbol;
 
 /**
  * Method declaration
@@ -17,21 +18,17 @@ import cz.dataformer.ast.type.Type;
 public final class MethodDeclaration extends BodyDeclaration {
 
     public Modifiers modifiers;
-
-    public Type type;
-
+    public Type returnType;
     public String name;
-
     public List<Parameter> parameters;
-
     public List<NameExpression> throws_;
-
     public BlockStatement block;
-
+    public MethodSymbol symbol;
+    
     public MethodDeclaration(int line, int column, Modifiers modifiers, Type returnType, String name, List<Parameter> parameters, List<NameExpression> throws_, BlockStatement block) {
         super(line, column);
         this.modifiers = modifiers;
-        this.type = returnType;
+        this.returnType = returnType;
         this.name = name;
         this.parameters = parameters;
         this.throws_ = throws_;

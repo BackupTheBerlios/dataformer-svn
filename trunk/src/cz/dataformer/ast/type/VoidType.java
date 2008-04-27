@@ -4,6 +4,7 @@
 package cz.dataformer.ast.type;
 
 import cz.dataformer.ast.NodeVisitor;
+import cz.dataformer.compiler.symbol.TypeSymbol;
 
 /**
  * Void type as returned from methods
@@ -14,11 +15,6 @@ public final class VoidType extends Type {
 
     public VoidType(int line, int column) {
         super(line, column);
-    }
-    
-    @Override
-    public boolean isPrimitive() {
-    	return true;
     }
     
     @Override

@@ -34,6 +34,18 @@ public class GraphParser {
     	list.add(obj);
     	return list;
     }
+    
+    /*
+     * Overloading of the above method for two lists.
+     * Merges the two lists. Features lazy allocation.
+     */
+    private List add(List target, List source) {
+    	if (target == null) {
+    		target = new LinkedList();
+    	}
+    	target.addAll(source);
+    	return target;
+    }
 	
 }
 PARSER_END(GraphParser)
@@ -134,7 +146,7 @@ TOKEN :
 
 
 
-TOKEN: { < STRING :
+TOKEN: { < STRING_LITERAL :
       "\""
       (   (~["\"","\\","\n","\r"])
         | ("\\"
@@ -349,6 +361,7 @@ List ComponentBodyDeclaration() :
 	Modifiers modifiers;
 	List ret = null;
 	BodyDeclaration member;
+	List fields = null;
 	
 }
 {
@@ -358,6 +371,9 @@ List ComponentBodyDeclaration() :
 		member = Port(modifiers) { ret = add(ret,member); }
 		| 
 		member = Property(modifiers) { ret = add(ret,member); }
+		|
+		 LOOKAHEAD( Type() <IDENTIFIER> ( "[" "]" )* ( "," | "=" | ";" ) )
+	     fields = ComponentFieldDeclaration(modifiers) { ret = add(ret,fields); }
 		|
 	  	member = MethodDeclaration(modifiers) { ret = add(ret,member); }
   	 )
@@ -369,11 +385,25 @@ List ComponentBodyDeclaration() :
 List GraphDeclaration() : 
 {
 	List ret = null;
-	ConnectStatement cs;
+	Statement s = null;
+	Expression expr = null;
 }
 {
 	"graph" "{"
-	cs = ConnectStatement() { ret=add(ret,cs); }  ( cs = ConnectStatement() { add(ret,cs); } ) *	
+	(
+		(
+			s = ConnectStatement() 
+			{ ret=add(ret,s); } 
+		)
+		|
+		(
+		
+			expr = PrimaryExpression() expr=AssignmentOrStreamExpression(expr) ";"
+			{ 
+				ret=add(ret,new ExpressionStatement(expr.getLine(),expr.getColumn(),expr)); 
+			}
+		)
+	)*
 	"}"
 	
 	{ return ret; }
@@ -381,11 +411,11 @@ List GraphDeclaration() :
 
 ConnectStatement ConnectStatement() :
 {
-	NameExpression sourcePort;
-	NameExpression destPort;
+	Expression sourcePort;
+	Expression destPort;
 }
 {
-	"connect" sourcePort = Name() "->" destPort = Name() ";"
+	"connect" sourcePort = PrimaryExpression() "->" destPort = PrimaryExpression() ";"
 	
 	{ return new ConnectStatement(sourcePort.getLine(),sourcePort.getColumn(),sourcePort,destPort); }
 }
@@ -393,12 +423,15 @@ ConnectStatement ConnectStatement() :
 
 Port Port(Modifiers modifiers) : 
 {
-	IOTypeParameter type;
+	ClassOrInterfaceType type;
 	String name;
+	Token t;
 }
 {
-	 "port"  type = IOTypeParameter()  <IDENTIFIER> { name = token.image; } ";"
-	 { return new Port(type.getLine(),type.getColumn(),modifiers,name,type); }
+	 "port"  type = ClassOrInterfaceType()  t = <IDENTIFIER> { name = t.image; } ";"
+	 { 
+	 	return new Port(type.getLine(),type.getColumn(),modifiers,name,type); 
+	 }
 }
 
 ComponentProperty Property(Modifiers modifiers) :
@@ -483,7 +516,31 @@ IOTypeParameter IOTypeParameter():{
    { 
    	name = token.image; line=token.beginLine; column=token.beginColumn;
    	return new IOTypeParameter(line,column,name);
-   } }MethodDeclaration MethodDeclaration(Modifiers modifiers):
+   } }
+/*
+ * Parses field declarations.
+ * Since declarations like "int a=3,b=4;" are allowed, we split them into separate
+ * field instances
+ */
+List ComponentFieldDeclaration(Modifiers modifiers):
+{
+	Type type;
+	List ret = new LinkedList();
+	VariableDeclarator val;
+}
+{
+  // Modifiers are already matched in the caller
+  type = Type() 
+        val = VariableDeclarator() 
+        { ret = add(ret, new ComponentFieldDeclaration(val.getLine(),val.getColumn(),modifiers,type,val) ); } 
+  ( 
+  	"," val = VariableDeclarator() 
+        { ret = add(ret, new ComponentFieldDeclaration(val.getLine(),val.getColumn(),modifiers,type,val) ); } 
+  )* ";"
+  
+  { return ret; }
+}
+MethodDeclaration MethodDeclaration(Modifiers modifiers):
 {
 	Type type;
 	String name;
@@ -521,17 +578,25 @@ Type ReturnType():
   { return ret; }
 }
 
-ReferenceType ReferenceType():
+Type ReferenceType():
 {
 	Type type;
 	int arrayCount = 0;
 }
 {
+	(
 	type = PrimitiveType() ( LOOKAHEAD(2) "[" "]" { arrayCount++; } )+
 	|
 	type = ClassOrInterfaceType() ( LOOKAHEAD(2) "[" "]" { arrayCount++; } )*
-	
-	{ return new ReferenceType(type.getLine(), type.getColumn(), type, arrayCount); }
+	)
+	{ 
+		// do not wrap the type into reference type if there is no array
+		if (arrayCount == 0) {
+			return type;
+		} else {
+			return new ReferenceType(type.getLine(), type.getColumn(), type, arrayCount); 
+		}
+	}
 }
 
 ClassOrInterfaceType ClassOrInterfaceType():
@@ -601,7 +666,7 @@ Type Type() :
 
 List FormalParameters():
 {
-	List ret = null;
+	List ret = new LinkedList();
 	Parameter param;
 }
 {
@@ -624,6 +689,17 @@ Parameter FormalParameter():
   { return new Parameter(type.getLine(),type.getColumn(),mods,type,isVarArg,id); }
 }
 
+List Statements():
+{
+	List ret = null;
+	Statement stmt;
+}
+{
+	( stmt = BlockStatement() { ret = add(ret, stmt); } )*
+	{ return ret; }
+}
+
+
 BlockStatement Block():
 {
 	Statement s;
@@ -632,7 +708,7 @@ BlockStatement Block():
 }
 {
   "{" { line = token.beginLine; column = token.beginColumn; }
- 	( s = BlockStatement() { statements = add(statements,s); }  )* 
+ 	statements = Statements()
   "}"
   { return new BlockStatement(line, column, statements); }
 }
@@ -719,14 +795,13 @@ VariableDeclarator VariableDeclarator():
 VariableDeclaratorId VariableDeclaratorId():
 {
 	int line,column;
-	int arrayCount = 0;
 	String name; 
 }
 {
   <IDENTIFIER> { name = token.image; line = token.beginLine; column = token.beginColumn; } 
-  ( "[" "]" { arrayCount++; })*
+  // array declaration via identifier is not supported: ( "[" "]" { arrayCount++; })*
   
-  { return new VariableDeclaratorId(line,column,name,arrayCount); }
+  { return new VariableDeclaratorId(line,column,name); }
 }
 
 
@@ -735,13 +810,15 @@ Expression VariableInitializer():
 	Expression expr;
 }
 {
-  expr = ArrayInitializer()|
-  expr = Expression()
+	(
+  	  expr = ArrayInitializer()	 |
+  	  expr = Expression()
+  	)
   
   { return expr; }
 }
 
-ArrayInitializerExpr ArrayInitializer():
+ArrayInitializerExpression ArrayInitializer():
 {
 	List values = null;
 	Expression val;
@@ -753,7 +830,50 @@ ArrayInitializerExpr ArrayInitializer():
   [ val = VariableInitializer() { values = add(values, val); } ( LOOKAHEAD(2) "," val = VariableInitializer() { values = add(values, val); } )* ] [ "," ] 
   "}"
   
-  { return new ArrayInitializerExpr(line, column, values); }
+  { return new ArrayInitializerExpression(line, column, values); }
+}
+
+Expression ArrayAllocationExpression() :
+{
+	Expression ret;
+	Type type;
+	Object[] arr = null;
+	int line;
+	int column;
+}
+{
+	  "new" {line=token.beginLine; column=token.beginColumn;} 
+	  ( type = PrimitiveType() | type = ClassOrInterfaceType() )
+	   arr = ArrayDimsAndInits()
+	  { 
+	  	if (arr[0] instanceof Integer) {
+		  	ret = new ArrayAllocationExpression(line, column, type, ((Integer)arr[0]).intValue(), (ArrayInitializerExpression)arr[1]);
+	  	} else {
+		  	ret = new ArrayAllocationExpression(line, column, type, (List)arr[0], ((Integer)arr[1]).intValue());
+	  	}
+	  }
+  { return ret; }
+}
+
+/*
+ * The third LOOKAHEAD specification below is to parse to PrimarySuffix
+ * if there is an expression between the "[...]".
+ */
+Object[] ArrayDimsAndInits():
+{
+	Object[] ret = new Object[2];
+	Expression expr;
+	List inits = null;
+	int i = 0;
+}
+{
+  (
+	  LOOKAHEAD(2)
+	  ( LOOKAHEAD(2) "[" expr = Expression() { inits = add(inits, expr); } "]" )+ ( LOOKAHEAD(2) "[" "]" { i++; } )* { ret[0] = inits; ret[1] = new Integer(i); }
+	|
+	  ( "[" "]" { i++; } )+ expr = ArrayInitializer() { ret[0] = new Integer(i); ret[1] = expr; }
+  )
+  { return ret; }
 }
 
 Expression Expression() :
@@ -1069,7 +1189,9 @@ Expression PrimaryPrefix():
   (
  	 ret = Literal()
   |
- 	 "(" ret = Expression() ")"  |
+ 	 "(" ret = Expression() ")"
+  |
+  	ret = ArrayAllocationExpression()  |
   	(
 	  	<IDENTIFIER> { name = token.image; line=token.beginLine; column=token.beginColumn; }  [ args = Arguments() {hasArgs=true;} ] 
 	  	{
@@ -1115,10 +1237,13 @@ Expression Literal():
 }
 {
   (
-  <INTEGER_LITERAL> 
-  { ret = new IntegerLiteralExpression(token.beginLine,token.beginColumn,token.image); }
-|
-  ret = BooleanLiteral()
+    <INTEGER_LITERAL> 
+    { ret = new IntegerLiteralExpression(token.beginLine,token.beginColumn,token.image); }
+   |
+   	<STRING_LITERAL> 
+   	{ ret = new StringLiteralExpression(token.beginLine, token.beginColumn, token.image.substring(1, token.image.length()-1));  }
+   |
+     ret = BooleanLiteral()
   )
   { return ret; }
 }
@@ -1142,12 +1267,48 @@ Statement Statement():{
 	Statement ret;
 }{
 //  LOOKAHEAD(2)//  LabeledStatement()//|//  AssertStatement()//|
-(  ret = Block()|  ret = EmptyStatement()|  ret = StatementExpression() ";"//|//  SwitchStatement()|  ret = IfStatement()|  ret = WhileStatement()
-|  ret = DoStatement()//|//  ForStatement()//|//  BreakStatement()//|//  ContinueStatement()|  ret = ReturnStatement()//|//  ThrowStatement()//|//  SynchronizedStatement()//|//  TryStatement()
+(  ret = Block()|  ret = EmptyStatement()|  ret = StatementExpression() ";"|  ret = SwitchStatement()|  ret = IfStatement()|  ret = WhileStatement()
+|  ret = DoStatement()|  ret = ForStatement()|  ret = BreakStatement()|  ret = ContinueStatement()|  ret = ReturnStatement()|  ret = ThrowStatement()//|//  SynchronizedStatement()|  ret = TryStatement()
 
 )
 	{ return ret; }}EmptyStatement EmptyStatement():{}{  ";"
   { return new EmptyStatement(token.beginLine, token.beginColumn); }}
+SwitchStatement SwitchStatement():
+{
+	Expression selector;
+	SwitchEntryStatement entry;
+	List entries = null;
+	int line;
+	int column;
+}
+{
+  "switch" {line=token.beginLine; column=token.beginColumn;} "(" selector = Expression() ")" "{"
+    ( entry = CaseEntry() { entries = add(entries, entry); } )*
+  "}"
+  
+  { return new SwitchStatement(line, column, selector, entries); }
+}
+
+SwitchEntryStatement CaseEntry():
+{
+	Expression label = null;
+	List stmts;
+	int line;
+	int column;
+}
+{
+  (
+	  "case" {line=token.beginLine; column=token.beginColumn;} label = Expression()
+	|
+	  "default" {line=token.beginLine; column=token.beginColumn;}
+  )
+  ":" stmts = Statements()
+  
+  { return new SwitchEntryStatement(line, column, label, stmts); }
+}
+
+
+
 
 IfStatement IfStatement():
 /*
@@ -1197,6 +1358,96 @@ DoStatement DoStatement():
   { return new DoStatement(line, column, body, condition); }
 }
 
+
+Statement ForStatement():
+{
+	String id = null;
+	VariableDeclarationExpression varExpr = null;
+	Expression expr = null;
+	List init = null;
+	List update = null;
+	Statement body;
+	int line;
+	int column;
+}
+{
+  "for" {line=token.beginLine; column=token.beginColumn;} "("
+
+  (
+      LOOKAHEAD(LocalVariableDeclaration() ":")
+      varExpr = LocalVariableDeclaration() ":" expr = Expression() 
+    |
+     [ init = ForInit() ] ";" [ expr = Expression() ] ";" [ update = ForUpdate() ]
+  )
+
+  ")" body = Statement()
+  
+  {
+  	if (varExpr != null) {
+  		return new ForeachStatement(line, column, varExpr, expr, body);
+  	}
+	return new ForStatement(line, column, init, expr, update, body);
+  }
+}
+
+List ForInit():
+{
+	List ret;
+	Expression expr;
+}
+{
+  (
+	  LOOKAHEAD( Modifiers() Type() <IDENTIFIER> )
+	  expr = LocalVariableDeclaration() { ret = new LinkedList(); ret.add(expr); }
+	|
+	  ret = ExpressionList()
+  )
+  { return ret; }
+}
+
+List ExpressionList():
+{
+	List ret = new LinkedList();
+	Expression expr;
+}
+{
+  expr = Expression() { ret.add(expr); } ( "," expr = Expression()  { ret.add(expr); } )*
+  
+  { return ret; }
+}
+
+List ForUpdate():
+{
+	List ret;
+}
+{
+  ret = ExpressionList()
+  
+  { return ret; }
+}
+
+BreakStatement BreakStatement():
+{
+	String id = null;
+	int line;
+	int column;
+}
+{
+  "break" {line=token.beginLine; column=token.beginColumn;} [ <IDENTIFIER> { id = token.image; } ] ";"
+  { return new BreakStatement(line, column, id); }
+}
+
+ContinueStatement ContinueStatement():
+{
+	String id = null;
+	int line;
+	int column;
+}
+{
+  "continue" {line=token.beginLine; column=token.beginColumn;} [ <IDENTIFIER> { id = token.image; } ] ";"
+  { return new ContinueStatement(line, column, id); }
+}
+
 ReturnStatement ReturnStatement():
 {
 	Expression expr = null;
@@ -1207,6 +1458,42 @@ ReturnStatement ReturnStatement():
   "return" {line=token.beginLine; column=token.beginColumn;} [ expr = Expression() ] ";"
   { return new ReturnStatement(line, column, expr); }
 }
+
+ThrowStatement ThrowStatement():
+{
+	Expression expr;
+	int line;
+	int column;
+}
+{
+  "throw" {line=token.beginLine; column=token.beginColumn;} expr = Expression() ";"
+  { return new ThrowStatement(line, column, expr); }
+}
+
+TryStatement TryStatement():
+/*
+ * Semantic check required here to make sure that at least one
+ * finally/catch is present.
+ */
+{
+	BlockStatement tryBlock;
+	BlockStatement finallyBlock = null;
+	List catchs = null;
+	Parameter except;
+	BlockStatement catchBlock;
+	int line;
+	int column;
+	int cLine;
+	int cColumn;
+}
+{
+  "try" {line=token.beginLine; column=token.beginColumn;} tryBlock = Block()
+  ( "catch" {cLine=token.beginLine; cColumn=token.beginColumn;} "(" except = FormalParameter() ")" catchBlock = Block() { catchs = add(catchs, new CatchClause(cLine, cColumn, except, catchBlock)); } )*
+  [ "finally" finallyBlock = Block() ]
+  { return new TryStatement(line, column, tryBlock, catchs, finallyBlock); }
+}
+
+
 
 /* 
  * We use productions to match >>>, >> and > so that we can keep the
@@ -1347,7 +1634,7 @@ ComponentVariableDeclaration ComponentVariableDeclaration(Modifiers mods):
 	<IDENTIFIER> { name=token.image; }
 	[ "{" body = ComponentBodyDeclaration() "}" ] ";"
 	
-	{ return new ComponentVariableDeclaration(className.getLine(),className.getColumn(),mods,ioTypes,name,body); }	
+	{ return new ComponentVariableDeclaration(className.getLine(),className.getColumn(),mods,className,ioTypes,name,body); }	
 }
 
 List ComponentInputOutputTypes() :
@@ -1415,7 +1702,7 @@ FieldDeclaration FieldDeclaration() #void:
 	  |
 	  (
 	  	 "delimiter" "("
-	 	 <STRING> { delimiter = token.image; isDelimited = true;}
+	 	 <STRING_LITERAL> { delimiter = token.image; isDelimited = true;}
 	 	 ")"
 	  )
 	 )

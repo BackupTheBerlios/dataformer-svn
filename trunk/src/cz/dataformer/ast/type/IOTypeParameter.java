@@ -4,26 +4,18 @@ import cz.dataformer.ast.NodeVisitor;
 
 
 /**
- * Represents type as from Java Generics
+ * Represents IO type parameter of a component
+ * 
  * @author mtomcany
  *
  */
 public class IOTypeParameter extends Type {
 
-	public final String name;
+	public String name;
 	
 	public IOTypeParameter(int line, int column, String name) {
 		super(line, column);
 		this.name = name;
-	}
-	
-	public String getName() {
-		return name;
-	}
-	
-	@Override
-	public boolean isPrimitive() {
-		return false;
 	}
 	
 	@Override

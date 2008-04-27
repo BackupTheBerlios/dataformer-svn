@@ -7,9 +7,7 @@ import cz.dataformer.ast.NodeVisitor;
 
 
 /**
- * Represents reference type
- * - array of primitive type
- * - other class type (not used)
+ * Represents arrays
  * 
  * @author mtomcany
  *
@@ -23,11 +21,6 @@ public final class ReferenceType extends Type {
         super(line, column);
         this.type = type;
         this.arrayCount = arrayCount;
-    }
-    
-    @Override
-    public boolean isPrimitive() {
-    	return false;
     }
     
     @Override

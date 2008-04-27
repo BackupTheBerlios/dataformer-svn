@@ -13,6 +13,7 @@ public final class FieldAccessExpression extends Expression {
 
     public Expression scope;
     public String field;
+   
 
     public FieldAccessExpression(int line, int column, Expression scope, String field) {
         super(line, column);

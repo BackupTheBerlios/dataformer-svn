@@ -7,6 +7,7 @@ import cz.dataformer.ast.body.BodyDeclaration;
 import cz.dataformer.ast.body.MainBlock;
 import cz.dataformer.ast.body.Modifiers;
 import cz.dataformer.ast.type.IOTypeParameter;
+import cz.dataformer.compiler.symbol.ComponentSymbol;
 
 public class ComponentDeclaration extends DataFormerNode {
 
@@ -15,6 +16,7 @@ public class ComponentDeclaration extends DataFormerNode {
 	public List<IOTypeParameter> ioParams;
 	public List<BodyDeclaration> members;
 	public MainBlock main;
+	public ComponentSymbol symbol;
 
 	public ComponentDeclaration(int line, int column, Modifiers mods, String name, List<IOTypeParameter> ioParams, List<BodyDeclaration> members, MainBlock main) {
 		super(line, column);

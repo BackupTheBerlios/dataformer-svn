@@ -1,6 +1,9 @@
 package cz.dataformer.ast;
 
+import java.util.List;
+
 import cz.dataformer.DataFormerNode;
+import cz.dataformer.ast.body.ComponentFieldDeclaration;
 import cz.dataformer.ast.body.ComponentProperty;
 import cz.dataformer.ast.body.MainBlock;
 import cz.dataformer.ast.body.MethodDeclaration;
@@ -9,7 +12,8 @@ import cz.dataformer.ast.body.Port;
 import cz.dataformer.ast.body.VariableDeclarator;
 import cz.dataformer.ast.body.VariableDeclaratorId;
 import cz.dataformer.ast.expression.ArrayAccessExpression;
-import cz.dataformer.ast.expression.ArrayInitializerExpr;
+import cz.dataformer.ast.expression.ArrayAllocationExpression;
+import cz.dataformer.ast.expression.ArrayInitializerExpression;
 import cz.dataformer.ast.expression.AssignmentExpression;
 import cz.dataformer.ast.expression.BinaryExpression;
 import cz.dataformer.ast.expression.BooleanLiteralExpression;
@@ -22,235 +26,341 @@ import cz.dataformer.ast.expression.LongLiteralMinValueExpression;
 import cz.dataformer.ast.expression.MethodCallExpression;
 import cz.dataformer.ast.expression.NameExpression;
 import cz.dataformer.ast.expression.QualifiedNameExpression;
+import cz.dataformer.ast.expression.StreamOperationExpression;
 import cz.dataformer.ast.expression.StringLiteralExpression;
 import cz.dataformer.ast.expression.UnaryExpression;
 import cz.dataformer.ast.expression.VariableDeclarationExpression;
+import cz.dataformer.ast.record.DelimitedFieldDeclaration;
+import cz.dataformer.ast.record.FixedFieldDeclaration;
 import cz.dataformer.ast.record.RecordDeclaration;
 import cz.dataformer.ast.statement.BlockStatement;
+import cz.dataformer.ast.statement.BreakStatement;
+import cz.dataformer.ast.statement.CatchClause;
+import cz.dataformer.ast.statement.ConnectStatement;
+import cz.dataformer.ast.statement.ContinueStatement;
 import cz.dataformer.ast.statement.DoStatement;
 import cz.dataformer.ast.statement.EmptyStatement;
 import cz.dataformer.ast.statement.ExpressionStatement;
+import cz.dataformer.ast.statement.ForStatement;
+import cz.dataformer.ast.statement.ForeachStatement;
 import cz.dataformer.ast.statement.IfStatement;
 import cz.dataformer.ast.statement.ReturnStatement;
+import cz.dataformer.ast.statement.SwitchEntryStatement;
+import cz.dataformer.ast.statement.SwitchStatement;
+import cz.dataformer.ast.statement.ThrowStatement;
+import cz.dataformer.ast.statement.TryStatement;
 import cz.dataformer.ast.statement.WhileStatement;
 import cz.dataformer.ast.type.ClassOrInterfaceType;
 import cz.dataformer.ast.type.IOTypeParameter;
 import cz.dataformer.ast.type.PrimitiveType;
 import cz.dataformer.ast.type.ReferenceType;
 import cz.dataformer.ast.type.VoidType;
-import cz.dataformer.ast.type.WildcardType;
+import cz.dataformer.compiler.ASTAnnotator;
 
 /**
  * No-op dummy implementation of NodeVisitor interface.
  * Clients may extend this class when only want to override some of visitor's methods
  *  
+ * Guaranteed order of passage:<br> 
+ * <ol>
+ * <li>Package</li>
+ * <li>Imports</li>
+ * <li>Record declarations</li>
+ * <li>Component declarations</li>
+ * <li>Component variables (instantiations)</li>
+ * <li>Transformation graph construction</li>
+ * </ol>
  * @author mtomcany
  *
  */
 public class NodeVisitorImpl implements NodeVisitor {
 
 	public void visit(DataFormerNode n) {
-		// TODO Auto-generated method stub
-		
+		assert false : "Unreachable code";
 	}
 
+	/** Visitor method */
+    public <T extends DataFormerNode> void visitNode(T node) {
+        if (node != null) {
+            node.accept(this);
+        }
+    }
+    
+    /** Visitor method for list of nodes */
+    public <T extends DataFormerNode> void visitNode(List<T> nodeList) {
+    	if (nodeList != null) {
+    		for (T node : nodeList) {
+    			visitNode(node);
+    		}
+    	}
+    }
+    
+    /**
+     * Order of passage must stay guaranteed
+     * See {@link ASTAnnotator#DataRecordCollector}
+     */
 	public void visit(Transformation n) {
-		// TODO Auto-generated method stub
-		
+		visitNode(n.packageName);
+		visitNode(n.imports);
+		visitNode(n.records);
+		visitNode(n.components);
+		visitNode(n.variables);
+		visitNode(n.graph);
 	}
 
 	public void visit(RecordDeclaration r) {
-		// TODO Auto-generated method stub
+		visitNode(r.fields);
 	}
 	
 	public void visit(ComponentDeclaration n) {
-		// TODO Auto-generated method stub
-		
+		visitNode(n.ioParams);
+		visitNode(n.members);
+		visitNode(n.main);
 	}
 
 	public void visit(ComponentProperty n) {
-		// TODO Auto-generated method stub
-		
+		visitNode(n.type);
 	}
 
 	public void visit(MainBlock n) {
-		// TODO Auto-generated method stub
-		
+		visitNode(n.block);		
 	}
 
 	public void visit(MethodDeclaration n) {
-		// TODO Auto-generated method stub
-		
+		visitNode(n.returnType);
+		visitNode(n.parameters);
+		visitNode(n.throws_);
+		visitNode(n.block);
 	}
 
 	public void visit(Parameter n) {
-		// TODO Auto-generated method stub
-		
+		visitNode(n.type);
+		visitNode(n.id);
 	}
 
 	public void visit(Port n) {
-		// TODO Auto-generated method stub
-		
+		visitNode(n.ioType);
 	}
 
 	public void visit(VariableDeclarator n) {
-		// TODO Auto-generated method stub
-		
+		visitNode(n.id);
+		visitNode(n.init);
 	}
 
 	public void visit(VariableDeclaratorId n) {
-		// TODO Auto-generated method stub
-		
+		// nothing to do
 	}
 
 	public void visit(ClassOrInterfaceType n) {
-		// TODO Auto-generated method stub
-		
+		// we won't visit n.scope, as it would lead us to some other branch
 	}
 
 	public void visit(IOTypeParameter n) {
-		// TODO Auto-generated method stub
-		
+		// nothing to do
 	}
 
 	public void visit(PrimitiveType n) {
-		// TODO Auto-generated method stub
-		
+		// nothing to do
 	}
 
 	public void visit(ReferenceType n) {
-		// TODO Auto-generated method stub
-		
+		visitNode(n.type);
 	}
 
 	public void visit(VoidType n) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void visit(WildcardType n) {
-		// TODO Auto-generated method stub
-		
+		// nothing to do
 	}
 
 	public void visit(ArrayAccessExpression n) {
-		// TODO Auto-generated method stub
-		
+		visitNode(n.name);
+		visitNode(n.index);
 	}
 
-	public void visit(ArrayInitializerExpr n) {
-		// TODO Auto-generated method stub
-		
+	public void visit(ArrayInitializerExpression n) {
+		visitNode(n.values);		
 	}
 
 	public void visit(AssignmentExpression n) {
-		// TODO Auto-generated method stub
-		
+		visitNode(n.target);
+		visitNode(n.value);		
 	}
 
 	public void visit(BinaryExpression n) {
-		// TODO Auto-generated method stub
-		
+		visitNode(n.left);
+		visitNode(n.right);
 	}
 
 	public void visit(ConditionalExpression n) {
-		// TODO Auto-generated method stub
-		
+		visitNode(n.condition);
+		visitNode(n.thenExpr);
+		visitNode(n.elseExpr);
 	}
 
 	public void visit(FieldAccessExpression n) {
-		// TODO Auto-generated method stub
-		
+		// we won't visit n.scope  as it would lead us to another branch
 	}
 
 	public void visit(StringLiteralExpression n) {
-		// TODO Auto-generated method stub
-		
+		// nothing to do
 	}
 
 	public void visit(IntegerLiteralExpression n) {
-		// TODO Auto-generated method stub
-		
+		// nothing to do
 	}
 
 	public void visit(LongLiteralExpression n) {
-		// TODO Auto-generated method stub
-		
+		// nothing to do
 	}
 
 	public void visit(IntegerLiteralMinValueExpression n) {
-		// TODO Auto-generated method stub
-		
+		// nothing to do
 	}
 
 	public void visit(LongLiteralMinValueExpression n) {
-		// TODO Auto-generated method stub
-		
+		// nothing to do
 	}
 
 	public void visit(BooleanLiteralExpression n) {
-		// TODO Auto-generated method stub
-		
+		// nothing to do
 	}
 
 	public void visit(MethodCallExpression n) {
-		// TODO Auto-generated method stub
-		
+		visitNode(n.args);
+		// we won't visit n.scope as it would lead us to another branch
 	}
 
 	public void visit(NameExpression n) {
-		// TODO Auto-generated method stub
-		
+		// nothing to do
 	}
 
 	public void visit(QualifiedNameExpression n) {
-		// TODO Auto-generated method stub
-		
+		// nothing to do
 	}
 
 	public void visit(UnaryExpression n) {
-		// TODO Auto-generated method stub
+		visitNode(n.expr);
 		
 	}
 
 	public void visit(VariableDeclarationExpression n) {
-		// TODO Auto-generated method stub
-		
+		visitNode(n.type);
+		visitNode(n.vars);
 	}
 
 	public void visit(BlockStatement n) {
-		// TODO Auto-generated method stub
-		
+		visitNode(n.statements);
 	}
 
 	public void visit(EmptyStatement n) {
-		// TODO Auto-generated method stub
-		
+		// nothing to do
 	}
 
 	public void visit(ExpressionStatement n) {
-		// TODO Auto-generated method stub
-		
+		visitNode(n.expr);
 	}
 
 	public void visit(ReturnStatement n) {
-		// TODO Auto-generated method stub
-		
+		visitNode(n.expr);
 	}
 
 	public void visit(IfStatement n) {
-		// TODO Auto-generated method stub
-		
+		visitNode(n.condition);
+		visitNode(n.thenStmt);
+		visitNode(n.elseStmt);
 	}
 
 	public void visit(WhileStatement n) {
-		// TODO Auto-generated method stub
-		
+		visitNode(n.condition);
+		visitNode(n.body);
 	}
 
 	public void visit(DoStatement n) {
-		// TODO Auto-generated method stub
-		
+		visitNode(n.body);
+		visitNode(n.condition);
+	}
+
+	public void visit(ComponentVariableDeclaration c) {
+		visitNode(c.type);
+		visitNode(c.ioTypes);
+		visitNode(c.body);
+	}
+
+	public void visit(ImportDeclaration n) {
+		visitNode(n.name);		
+	}
+
+	public void visit(FixedFieldDeclaration f) {
+		visitNode(f.type);
+	}
+
+	public void visit(DelimitedFieldDeclaration f) {
+		visitNode(f.type);		
+	}
+
+	public void visit(ComponentFieldDeclaration n) {
+		visitNode(n.type);
+		visitNode(n.variable);
+	}
+
+	public void visit(ArrayAllocationExpression n) {
+		visitNode(n.type);
+		visitNode(n.dimensions);
+		visitNode(n.initializer);		
+	}
+
+	public void visit(StreamOperationExpression n) {
+		visitNode(n.left);
+		visitNode(n.right);
+	}
+
+	public void visit(BreakStatement n) {
+		// nothing to do
+	}
+
+	public void visit(CatchClause n) {
+		visitNode(n.except);
+		visitNode(n.catchBlock);
+	}
+
+	public void visit(ConnectStatement n) {
+		visitNode(n.sourcePort);
+		visitNode(n.destPort);
+	}
+
+	public void visit(ContinueStatement n) {
+		// nothing to do
+	}
+
+	public void visit(ForeachStatement n) {
+		visitNode(n.var);
+		visitNode(n.iterable);
+		visitNode(n.body);
+	}
+
+	public void visit(ForStatement n) {
+		visitNode(n.init);
+		visitNode(n.iterable);
+		visitNode(n.body);
+	}
+
+	public void visit(SwitchEntryStatement n) {
+		visitNode(n.label);
+		visitNode(n.stmts);		
+	}
+
+	public void visit(SwitchStatement n) {
+		visitNode(n.selector);
+		visitNode(n.entries);
+	}
+
+	public void visit(ThrowStatement n) {
+		visitNode(n.expr);		
+	}
+
+	public void visit(TryStatement n) {
+		visitNode(n.tryBlock);
+		visitNode(n.catchs);
+		visitNode(n.finallyBlock);
 	}
 
 }

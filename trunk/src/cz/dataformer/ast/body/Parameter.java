@@ -6,9 +6,11 @@ package cz.dataformer.ast.body;
 import cz.dataformer.DataFormerNode;
 import cz.dataformer.ast.NodeVisitor;
 import cz.dataformer.ast.type.Type;
+import cz.dataformer.compiler.symbol.VariableSymbol;
 
 /**
- * Method parameter
+ * Method or catch-clause parameter
+ * 
  * @author mtomcany
  */
 public final class Parameter extends DataFormerNode {
@@ -17,7 +19,8 @@ public final class Parameter extends DataFormerNode {
     public Type type;
     public boolean isVarArgs;
     public VariableDeclaratorId id;
-
+    public VariableSymbol symbol;
+    
     public Parameter(int line, int column, Modifiers modifiers, Type type, boolean isVarArgs, VariableDeclaratorId id) {
         super(line, column);
         this.modifiers = modifiers;

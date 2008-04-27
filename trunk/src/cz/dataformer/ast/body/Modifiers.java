@@ -1,7 +1,11 @@
 package cz.dataformer.ast.body;
 
+import java.util.EnumSet;
+import java.util.Set;
+
 import cz.dataformer.ParseException;
 import cz.dataformer.Token;
+import cz.dataformer.compiler.symbol.SymbolFlags;
 
 
 /**
@@ -142,4 +146,71 @@ public class Modifiers {
         return modifiers |= mod;
     }
 	
+    public Set<SymbolFlags> asSymbolFlags() {
+    	Set<SymbolFlags> ret = EnumSet.noneOf(SymbolFlags.class);
+    	
+    	if (isAbstract()) {
+    		ret.add(SymbolFlags.ABSTRACT);
+    	}
+    	
+    	if (isFinal()) {
+    		ret.add(SymbolFlags.FINAL);
+    	}
+    	
+    	if (isInput()) {
+    		ret.add(SymbolFlags.INPUT);
+    	}
+    	
+    	if (isNative()) {
+    		ret.add(SymbolFlags.NATIVE);
+    	}
+    	
+    	if (isOptional()) {
+    		ret.add(SymbolFlags.OPTIONAL);
+    	}
+    	
+    	if (isOutput()) {
+    		ret.add(SymbolFlags.OUTPUT);
+    	}
+    	
+    	if (isPrivate()) {
+    		ret.add(SymbolFlags.PRIVATE);
+    	}
+    	
+    	if (isProtected()) {
+    		ret.add(SymbolFlags.PROTECTED);
+    	}
+    	
+    	if (isPublic()) {
+    		ret.add(SymbolFlags.PUBLIC);
+    	}
+    	
+    	if (isRequired()) {
+    		ret.add(SymbolFlags.REQUIRED);
+    	}
+    	
+    	if (isStatic()) {
+    		ret.add(SymbolFlags.STATIC);
+    	}
+    	
+    	if (isStrictfp()) {
+    		ret.add(SymbolFlags.STRICTFP);
+    	}
+    	
+    	if (isSynchronized()) {
+    		ret.add(SymbolFlags.SYNCHRONIZED);
+    	}
+    	
+    	if (isTransient()) {
+    		ret.add(SymbolFlags.TRANSIENT);
+    	}
+    	
+    	if (isVolatile()) {
+    		ret.add(SymbolFlags.VOLATILE);
+    	}
+    	
+    	return ret;
+    }
+    	
+    
 }

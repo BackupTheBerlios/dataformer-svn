@@ -11,7 +11,7 @@ import cz.dataformer.ast.expression.NameExpression;
  */
 public final class ImportDeclaration extends DataFormerNode {
 
-    public final NameExpression name;
+    public NameExpression name;
 
     public final boolean isAsterisk;
 

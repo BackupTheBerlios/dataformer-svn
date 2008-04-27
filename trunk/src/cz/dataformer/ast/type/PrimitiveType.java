@@ -21,7 +21,24 @@ public final class PrimitiveType extends Type {
 	 *
 	 */
     public enum PrimitiveTypeEnum {
-        Boolean, Char, Byte, Short, Int, Long, Float, Double
+        Boolean("boolean"),
+        Char("char"),
+        Byte("byte"),
+        Short("short"),
+        Int("int"),
+        Long("long"),
+        Float("float"),
+        Double("double");
+        
+        private final String name;
+        
+        private PrimitiveTypeEnum(String name) {
+        	this.name = name;
+        }
+        
+        public String getName() {
+			return name;
+		}
     }
 
     public PrimitiveTypeEnum type;
@@ -29,11 +46,6 @@ public final class PrimitiveType extends Type {
     public PrimitiveType(int line, int column, PrimitiveTypeEnum type) {
         super(line, column);
         this.type = type;
-    }
-    
-    @Override
-    public boolean isPrimitive() {
-    	return true;
     }
     
     @Override

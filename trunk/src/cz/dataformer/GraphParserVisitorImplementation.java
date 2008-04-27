@@ -372,8 +372,74 @@ public class GraphParserVisitorImplementation implements GraphParserVisitor {
 		return null;
 	}
 
+	public Object visit(ASTForStatement node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
-	
+	public Object visit(ASTForInit node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
+	public Object visit(ASTExpressionList node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTForUpdate node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTArrayAllocationExpression node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTArrayDimsAndInits node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTComponentFieldDeclaration node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTSwitchStatement node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTCaseEntry node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTBreakStatement node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTContinueStatement node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTThrowStatement node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTTryStatement node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object visit(ASTStatements node, Object data) throws VisitorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 }
