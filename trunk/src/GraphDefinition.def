@@ -5,7 +5,6 @@ import cz.dataformer.someimport.*;
 public transformation MyTransformation {
 
 	public component Filter<I> {
-		required property String someProperty;
 		out port I validOutput;
 		in port I input;
 		optional out port I invalidOutput;
@@ -32,7 +31,14 @@ public transformation MyTransformation {
 		private T generateMessage();
 		
 		main {
-			generateMessage() >> output;
+			for (int i=0; i<3; i++) {
+				generateMessage() >> output;
+			}
+			
+			int[] mmb = {1,2,3};
+			for (int i : mmb) {
+				generateMessage() >> output;
+			}
 		}
 	}
 
@@ -59,11 +65,12 @@ public transformation MyTransformation {
 	// component as transformation field
 	private Generator<InputRecord> reader {
 		private InputRecord generateMessage() {
+	
 			InputRecord rec;
 			rec.firstField = 1;
 			rec.secondField = 2;
 			rec.thirdField = true;
-			
+				
 			return rec;
 		}
 	};
@@ -80,6 +87,8 @@ public transformation MyTransformation {
 	
 	
 	graph {
+		trashBin.errorMessage = "Deleted record";
+	
 		connect reader.output -> filter.input;
 		connect filter.validOutput -> trashBin.input;
 	}
