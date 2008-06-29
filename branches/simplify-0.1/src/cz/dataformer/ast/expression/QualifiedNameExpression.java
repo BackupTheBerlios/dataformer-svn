@@ -7,7 +7,7 @@ import cz.dataformer.ast.NodeVisitor;
 
 
 /**
- * Represents qualified name
+ * Represents qualified name - e.g. cz.dataformer.SomeComponent
  * 
  * @author mtomcany
  */

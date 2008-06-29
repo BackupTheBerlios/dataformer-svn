@@ -7,7 +7,7 @@ import java.util.Collections;
 
 import cz.dataformer.GraphParser;
 import cz.dataformer.ParseException;
-import cz.dataformer.ast.ComponentVariableDeclaration;
+import cz.dataformer.ast.TransformationFieldDeclaration;
 import cz.dataformer.ast.ImportDeclaration;
 import cz.dataformer.ast.Transformation;
 import cz.dataformer.ast.record.RecordDeclaration;
@@ -38,7 +38,7 @@ public class ParserWrapper {
 			"ErrorneousTransformation",
 			Collections.<ComponentDeclaration>emptyList(),
 			Collections.<RecordDeclaration>emptyList(),
-			Collections.<ComponentVariableDeclaration>emptyList(),
+			Collections.<TransformationFieldDeclaration>emptyList(),
 			Collections.<ConnectStatement>emptyList(),
 			null,// package name
 			Collections.<ImportDeclaration>emptyList()

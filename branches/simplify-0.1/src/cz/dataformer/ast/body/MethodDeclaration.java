@@ -15,9 +15,10 @@ import cz.dataformer.compiler.symbol.MethodSymbol;
  * Method declaration
  * @author mtomcany
  */
-public final class MethodDeclaration extends BodyDeclaration {
+public class MethodDeclaration extends BodyDeclaration {
 
     public Modifiers modifiers;
+    /** Return type is ONLY null for constructor */
     public Type returnType;
     public String name;
     public List<Parameter> parameters;
@@ -38,5 +39,10 @@ public final class MethodDeclaration extends BodyDeclaration {
     @Override
     public void accept(NodeVisitor v) {
     	v.visit(this);
+    }
+    
+    
+    public boolean isConstructor() {
+    	return returnType == null;
     }
 }

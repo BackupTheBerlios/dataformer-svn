@@ -4,12 +4,13 @@ import java.util.EnumSet;
 import java.util.LinkedList;
 
 import cz.dataformer.ast.ComponentDeclaration;
-import cz.dataformer.ast.ComponentVariableDeclaration;
+import cz.dataformer.ast.TransformationFieldDeclaration;
 import cz.dataformer.ast.NodeVisitorImpl;
 import cz.dataformer.ast.body.ComponentFieldDeclaration;
 import cz.dataformer.ast.body.MethodDeclaration;
 import cz.dataformer.ast.body.Parameter;
 import cz.dataformer.ast.body.Port;
+import cz.dataformer.ast.expression.NameExpression;
 import cz.dataformer.ast.record.DelimitedFieldDeclaration;
 import cz.dataformer.ast.record.FieldDeclaration;
 import cz.dataformer.ast.record.FixedFieldDeclaration;
@@ -130,7 +131,7 @@ public class ASTAnnotator {
 				rec.symbol = recordSymbol;
 				currentScope.put(recordSymbol);
 			} catch (DuplicateDeclarationException e) {
-				pr.duplicateDeclaration(e.getMessage(),e.getSymbol());
+				pr.duplicateDeclaration(e.getMessage(),e.getSymbol().getAst());
 				return;
 			}
 
@@ -174,7 +175,7 @@ public class ASTAnnotator {
 				f.symbol = s;
 				currentScope.put(s);
 			} catch (DuplicateDeclarationException e) {
-				pr.duplicateDeclaration(e.getMessage(),e.getSymbol());
+				pr.duplicateDeclaration(e.getMessage(),e.getSymbol().getAst());
 			}
 		}
 
@@ -188,7 +189,7 @@ public class ASTAnnotator {
 				n.symbol = cs;
 				currentScope.put(cs);
 			} catch (DuplicateDeclarationException e) {
-				pr.duplicateDeclaration(e.getMessage(),e.getSymbol());
+				pr.duplicateDeclaration(e.getMessage(),e.getSymbol().getAst());
 			}
 			
 			// create and open component's scope
@@ -228,7 +229,7 @@ public class ASTAnnotator {
 				n.symbol = s;
 				currentScope.put(s);
 			} catch (DuplicateDeclarationException e) {
-				pr.duplicateDeclaration(e.getMessage(),e.getSymbol());
+				pr.duplicateDeclaration(e.getMessage(),e.getSymbol().getAst());
 			}
 			
 		}
@@ -240,7 +241,7 @@ public class ASTAnnotator {
 		 * Checks if  a component is a topologic root (it has no inputs)
 		 */
 		public void visit(Port n) {
-			TypeSymbol type = (TypeSymbol)currentScope.lookup(n.ioType.name, SymbolFlags.TYPE, SymbolFlags.GENERIC);
+			TypeSymbol type = (TypeSymbol)currentScope.lookup(n.ioType, SymbolFlags.TYPE, SymbolFlags.GENERIC);
 			if (type == null) {
 				pr.ioTypeCannotBeResolved(n);
 				type = TypeSymbol.ERROR;
@@ -262,7 +263,7 @@ public class ASTAnnotator {
 				n.symbol = vs;
 				currentScope.put(vs);
 			} catch (DuplicateDeclarationException e) {
-				pr.duplicateDeclaration(e.getMessage(),e.getSymbol());			}
+				pr.duplicateDeclaration(e.getMessage(),e.getSymbol().getAst());			}
 			
 			// set ports flag 
 			hasPorts = true;
@@ -286,7 +287,7 @@ public class ASTAnnotator {
 			n.type.symbol = typeSymbol;
 			VariableSymbol vs = null;
 			try {
-				vs = new VariableSymbol(n,n.variable.id.name,SymbolFlags.FIELD,currentSymbol,typeSymbol,n.modifiers.asSymbolFlags());
+				vs = new VariableSymbol(n,n.variable.id,SymbolFlags.FIELD,currentSymbol,typeSymbol,n.modifiers.asSymbolFlags());
 				// propagate the generic flag to symbol if type is generic
 				if (typeSymbol.isAll(SymbolFlags.GENERIC)) {
 					vs.flag(SymbolFlags.GENERIC);
@@ -294,7 +295,7 @@ public class ASTAnnotator {
 				n.symbol = vs;
 				currentScope.put(vs);
 			} catch (DuplicateDeclarationException e) {
-				pr.duplicateDeclaration(e.getMessage(),e.getSymbol());
+				pr.duplicateDeclaration(e.getMessage(),e.getSymbol().getAst());
 			}
 		}
 		
@@ -326,7 +327,7 @@ public class ASTAnnotator {
 			try {
 				currentScope.put(ms);
 			} catch (DuplicateDeclarationException e) {
-				pr.duplicateDeclaration(e.getMessage(),e.getSymbol());
+				pr.duplicateDeclaration(e.getMessage(),e.getSymbol().getAst());
 			}
 			
 			Symbol prevSymbol = currentSymbol;
@@ -363,7 +364,7 @@ public class ASTAnnotator {
 			}
 			
 			n.type.symbol = typeSymbol;
-			VariableSymbol vs = new VariableSymbol(n,n.id.name,SymbolFlags.VARIABLE,currentSymbol,typeSymbol,EnumSet.noneOf(SymbolFlags.class));
+			VariableSymbol vs = new VariableSymbol(n,n.id,SymbolFlags.VARIABLE,currentSymbol,typeSymbol,EnumSet.noneOf(SymbolFlags.class));
 			if (typeSymbol.isAll(SymbolFlags.GENERIC)) {
 				vs.flag(SymbolFlags.GENERIC);
 			}
@@ -371,7 +372,7 @@ public class ASTAnnotator {
 			try {
 				currentScope.put(typeSymbol);
 			} catch (DuplicateDeclarationException e) {
-				pr.duplicateDeclaration(e.getMessage(),e.getSymbol());
+				pr.duplicateDeclaration(e.getMessage(),e.getSymbol().getAst());
 			}
 		}
 		
@@ -379,7 +380,7 @@ public class ASTAnnotator {
 		 * Components variables must be handled after all records are handled
 		 */
 		@Override
-		public void visit(ComponentVariableDeclaration c) {
+		public void visit(TransformationFieldDeclaration c) {
 			ComponentSymbol generic = (ComponentSymbol)currentScope.lookup(c.type.name,SymbolFlags.COMPONENT);
 			if (generic == null) {
 				pr.typeCannotBeResolved(c,c.type.name);
@@ -389,18 +390,15 @@ public class ASTAnnotator {
 
 			// check count of types and type validity before going for instantiation
 			ComponentDeclaration genericAST = (ComponentDeclaration)generic.getAst();
-			if (c.ioTypes.size() != genericAST.ioParams.size()) {
+			if (c.ioParams.size() != genericAST.ioParams.size()) {
 				pr.incorrectNumberOfIOParams(c.line,c.column,genericAST);
 			}
 			
 			/*
 			 * check that all substitues resolved  to record-types (and not primitive types)
 			 */
-			for (Type t : c.ioTypes) {
-				if ((t instanceof ClassOrInterfaceType) == false) {
-					pr.notValidRecordType(t);
-				}
-				t.symbol = (RecordSymbol)currentScope.lookup(((ClassOrInterfaceType)t).name,SymbolFlags.RECORD);
+			for (NameExpression t : c.ioParams) {
+				t.symbol = (RecordSymbol)currentScope.lookup(t.name,SymbolFlags.RECORD);
 				if (t.symbol == null) {
 					t.symbol = TypeSymbol.ERROR;
 				}
@@ -409,12 +407,12 @@ public class ASTAnnotator {
 			
 			VariableSymbol vs = null;
 			try {
-				ComponentSymbol specific = generic.instantiate(c.ioTypes);
+				ComponentSymbol specific = generic.instantiate(c.ioParams);
 				vs = new VariableSymbol(c,c.name,SymbolFlags.VARIABLE,currentSymbol,specific,c.modifiers.asSymbolFlags());
 				c.symbol = vs;
 				currentScope.put(vs);
 			} catch (DuplicateDeclarationException e) {
-				pr.duplicateDeclaration(e.getMessage(),e.getSymbol());
+				pr.duplicateDeclaration(e.getMessage(),e.getSymbol().getAst());
 			}
 		}
 		

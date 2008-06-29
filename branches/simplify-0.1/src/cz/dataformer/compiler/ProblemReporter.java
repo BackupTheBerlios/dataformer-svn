@@ -10,9 +10,9 @@ import cz.dataformer.ast.body.Port;
 import cz.dataformer.ast.expression.Expression;
 import cz.dataformer.ast.expression.FieldAccessExpression;
 import cz.dataformer.ast.record.FieldDeclaration;
+import cz.dataformer.ast.record.RecordDeclaration;
 import cz.dataformer.ast.type.IOTypeParameter;
 import cz.dataformer.ast.type.Type;
-import cz.dataformer.compiler.symbol.Symbol;
 import cz.dataformer.compiler.symbol.TypeSymbol;
 
 public class ProblemReporter {
@@ -90,13 +90,13 @@ public class ProblemReporter {
 	
 	public void ioTypeCannotBeResolved(Port n) {
 		ProblemMessage msg = new ProblemMessage(n.line,n.column,
-				n.ioType.name + " cannot be resolved to an I/O type");
+				n.ioType + " cannot be resolved to an I/O type");
 		messages.add(msg);
 	}
 
 	public void typeDoesNotMatchIOParams(Port n) {
-		ProblemMessage msg = new ProblemMessage(n.ioType.line,n.ioType.column,
-				n.ioType.name + "does not match any of component I/O types");
+		ProblemMessage msg = new ProblemMessage(n.line,n.column,
+				n.ioType + "does not match any of component I/O types");
 		messages.add(msg);
 	}
 
@@ -112,9 +112,8 @@ public class ProblemReporter {
 		messages.add(msg);
 	}
 
-	public void duplicateDeclaration(String message, Symbol s) {
-		ProblemMessage msg = new ProblemMessage(s.getAst().line,
-				s.getAst().column, message);
+	public void duplicateDeclaration(String message, DataFormerNode ast) {
+		ProblemMessage msg = new ProblemMessage(ast.line,ast.column, message);
 		messages.add(msg);
 	}
 	
@@ -132,6 +131,11 @@ public class ProblemReporter {
 
 	public void notValidRecordType(Type t) {
 		ProblemMessage msg = new ProblemMessage(t.line,t.column,"Not a valid data record type");
+		messages.add(msg);
+	}
+
+	public void recordHasNoFields(RecordDeclaration ast) {
+		ProblemMessage msg = new ProblemMessage(ast.line,ast.column,"Data record has no fields declared");
 		messages.add(msg);
 	}
 	
@@ -178,6 +182,7 @@ public class ProblemReporter {
 			System.out.println("Compiled successfully");
 		}
 	}
+
 
 
 

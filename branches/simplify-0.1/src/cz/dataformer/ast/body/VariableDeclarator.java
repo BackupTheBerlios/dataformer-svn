@@ -12,11 +12,11 @@ import cz.dataformer.ast.expression.Expression;
  */
 public final class VariableDeclarator extends DataFormerNode {
 
-    public VariableDeclaratorId id;
+    public String id;
 
     public Expression init;
 
-    public VariableDeclarator(int line, int column, VariableDeclaratorId id, Expression init) {
+    public VariableDeclarator(int line, int column, String id, Expression init) {
         super(line, column);
         this.id = id;
         this.init = init;

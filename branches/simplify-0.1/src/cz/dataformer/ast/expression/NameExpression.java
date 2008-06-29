@@ -4,6 +4,7 @@
 package cz.dataformer.ast.expression;
 
 import cz.dataformer.ast.NodeVisitor;
+import cz.dataformer.compiler.symbol.Symbol;
 
 
 /**
@@ -16,6 +17,7 @@ import cz.dataformer.ast.NodeVisitor;
 public class NameExpression extends Expression {
 
     public String name;
+    public Symbol symbol;
 
     public NameExpression(int line, int column, String name) {
         super(line, column);

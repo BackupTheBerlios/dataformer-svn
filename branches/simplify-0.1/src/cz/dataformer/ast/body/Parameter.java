@@ -18,10 +18,10 @@ public final class Parameter extends DataFormerNode {
     public Modifiers modifiers;
     public Type type;
     public boolean isVarArgs;
-    public VariableDeclaratorId id;
+    public String id;
     public VariableSymbol symbol;
     
-    public Parameter(int line, int column, Modifiers modifiers, Type type, boolean isVarArgs, VariableDeclaratorId id) {
+    public Parameter(int line, int column, Modifiers modifiers, Type type, boolean isVarArgs, String id) {
         super(line, column);
         this.modifiers = modifiers;
         this.type = type;
