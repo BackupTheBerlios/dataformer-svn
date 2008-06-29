@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 import cz.dataformer.ast.ComponentDeclaration;
+import cz.dataformer.ast.expression.NameExpression;
 import cz.dataformer.ast.type.IOTypeParameter;
 import cz.dataformer.ast.type.Type;
 
@@ -31,7 +32,7 @@ public class ComponentSymbol extends TypeSymbol {
 	 * resolution, so this must be done prior to calling this method
 	 * 
 	 */
-	public ComponentSymbol instantiate(List<Type> replacements) {
+	public ComponentSymbol instantiate(List<NameExpression> replacements) {
 		ComponentDeclaration genericAST = (ComponentDeclaration)getAst();
 		
 		// copy all flags except 'generic' 
@@ -42,13 +43,13 @@ public class ComponentSymbol extends TypeSymbol {
 		ComponentSymbol instance = new ComponentSymbol(genericAST,getOwner(),flags);
 		
 		// substitute types - number of types should have been checked before calling this
-		Iterator<Type> replaceIter = replacements.iterator();
+		Iterator<NameExpression> replaceIter = replacements.iterator();
 
 		// build the type translation table
 		HashMap<String,TypeSymbol> transTable = new HashMap<String,TypeSymbol>();
 		assert replacements.size() == genericAST.ioParams.size() : "Insufficient number of types. Was it validated?!";
 		for (IOTypeParameter io : genericAST.ioParams) {
-			transTable.put(io.name,replaceIter.next().symbol);
+			transTable.put(io.name,(TypeSymbol)replaceIter.next().symbol);
 		}
 		
 		// substitute the types in variables and methods using the translation table
