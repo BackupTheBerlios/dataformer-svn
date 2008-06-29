@@ -6,8 +6,6 @@ options {
   JDK_VERSION = "1.5";
   STATIC = false;
   MULTI=true;
-  VISITOR=true;
-  VISITOR_EXCEPTION = "VisitorException";
   DEBUG_PARSER=true;
 }
 PARSER_BEGIN(GraphParser)
@@ -27,9 +25,9 @@ public class GraphParser {
 	 * Utility method to add items into list
 	 * Also features lazy allocation
 	 */
-	private List add(List list, Object obj) {
+	private <T> List<T> add(List<T> list, T obj) {
 		if (list == null) {
-			list = new LinkedList();
+			list = new LinkedList<T>();
     	}
     	list.add(obj);
     	return list;
@@ -39,9 +37,9 @@ public class GraphParser {
      * Overloading of the above method for two lists.
      * Merges the two lists. Features lazy allocation.
      */
-    private List add(List target, List source) {
+    private <T> List<T> add(List<T> target, List<T> source) {
     	if (target == null) {
-    		target = new LinkedList();
+    		target = new LinkedList<T>();
     	}
     	target.addAll(source);
     	return target;
@@ -279,7 +277,7 @@ Transformation Transformation() :
 	List graph = null;
 	ComponentDeclaration cd;
 	RecordDeclaration rd;
-	ComponentVariableDeclaration cv;
+	TransformationFieldDeclaration cv;
 	String name;
 	Modifiers topLevelMods,mods;
 	int line,column;
@@ -294,7 +292,7 @@ Transformation Transformation() :
 		| 
 		rd = RecordDeclaration(mods) { records = add(records,rd); }
 		|
-		cv = ComponentVariableDeclaration(mods) { vars = add(vars,cv); }
+		cv = TransformationFieldDeclaration(mods) { vars = add(vars,cv); }
 		) 
 	)*
 	graph = GraphDeclaration()
@@ -314,7 +312,7 @@ NameExpression Package() :
 	{ return name; }
 }
 
-List Imports() : 
+List<ImportDeclaration> Imports() : 
 {
 	List ret = null;
 	NameExpression name = null;
@@ -343,17 +341,19 @@ ComponentDeclaration ComponentDeclaration(Modifiers mods) :
 	String name;
 	List ioParams;
 	List members;
-	MainBlock main;
+	MainBlock main = null;
+	ComponentType extend=null;
 }
 {
 	// Modifiers already matched in the caller!
 	"component" <IDENTIFIER> { line = token.beginLine; column = token.beginColumn; name = token.image; }
-	ioParams = IOTypeParameters() "{"
+		ioParams = IOTypeParameters() 
+		[ "extends" extend = ComponentType() ] "{"
 		members = ComponentBodyDeclaration() 
-	  	main = MainBlock()
+	  	[ main = MainBlock() ]
 	"}"
 	
-	{ return new ComponentDeclaration(line,column,mods,name,ioParams,members,main); }
+	{ return new ComponentDeclaration(line,column,mods,name,ioParams,members,main,extend); }
 }
 
 List ComponentBodyDeclaration() :
@@ -370,12 +370,13 @@ List ComponentBodyDeclaration() :
 	 ( 
 		member = Port(modifiers) { ret = add(ret,member); }
 		| 
-		member = Property(modifiers) { ret = add(ret,member); }
-		|
-		 LOOKAHEAD( Type() <IDENTIFIER> ( "[" "]" )* ( "," | "=" | ";" ) )
+		 LOOKAHEAD( JavaType() <IDENTIFIER> ( "[" "]" )* ( "," | "=" | ";" ) )
 	     fields = ComponentFieldDeclaration(modifiers) { ret = add(ret,fields); }
 		|
-	  	member = MethodDeclaration(modifiers) { ret = add(ret,member); }
+		 LOOKAHEAD (<IDENTIFIER> "(" )
+		 member = ConstructorDeclaration(modifiers)
+		|
+	  	 member = MethodDeclaration(modifiers) { ret = add(ret,member); }
   	 )
   	)*
   	
@@ -423,28 +424,17 @@ ConnectStatement ConnectStatement() :
 
 Port Port(Modifiers modifiers) : 
 {
-	ClassOrInterfaceType type;
+	String type;
 	String name;
-	Token t;
+	int line,column;
 }
 {
-	 "port"  type = ClassOrInterfaceType()  t = <IDENTIFIER> { name = t.image; } ";"
+	 "port"  <IDENTIFIER> { type = token.image; line=token.beginLine; column=token.beginColumn;}  
+	 <IDENTIFIER> { name = token.image; } ";"
 	 { 
-	 	return new Port(type.getLine(),type.getColumn(),modifiers,name,type); 
+	 	return new Port(line,column,modifiers,name,type); 
 	 }
 }
-
-ComponentProperty Property(Modifiers modifiers) :
-{
-	Type type;
-	String name;
-}
-{
-	"property" type = PropertyType() <IDENTIFIER> { name = token.image; } ";"
-	{ return new ComponentProperty(type.getLine(), type.getColumn(),modifiers,type,name); }
-}
-
-
 
 /*
  * Modifiers. We match all modifiers in a single rule to reduce the chances of
@@ -500,7 +490,7 @@ Modifiers Modifiers():
 /* 
 * Type parameters as defined in Java 1.5 grammar
 */
-List IOTypeParameters() :{
+List<IOTypeParameter> IOTypeParameters() :{
 	List ret = null;
 	IOTypeParameter type;
 }{   "<" type = IOTypeParameter() { ret = add(ret,type); } 
@@ -511,11 +501,12 @@ List IOTypeParameters() :{
 
 IOTypeParameter IOTypeParameter():{
 	String name;
+	NameExpression extension=null;
 	int line,column;
-}{   <IDENTIFIER> 
-   { 
-   	name = token.image; line=token.beginLine; column=token.beginColumn;
-   	return new IOTypeParameter(line,column,name);
+}{   <IDENTIFIER> { name = token.image; line=token.beginLine; column=token.beginColumn;}
+   [ "extends" extension = Name() ]
+   {
+   	return new IOTypeParameter(line,column,name,extension);
    } }
 /*
  * Parses field declarations.
@@ -530,7 +521,7 @@ List ComponentFieldDeclaration(Modifiers modifiers):
 }
 {
   // Modifiers are already matched in the caller
-  type = Type() 
+  type = JavaType() 
         val = VariableDeclarator() 
         { ret = add(ret, new ComponentFieldDeclaration(val.getLine(),val.getColumn(),modifiers,type,val) ); } 
   ( 
@@ -540,7 +531,27 @@ List ComponentFieldDeclaration(Modifiers modifiers):
   
   { return ret; }
 }
-MethodDeclaration MethodDeclaration(Modifiers modifiers):
+
+ConstructorDeclaration ConstructorDeclaration(Modifiers modifiers):
+{
+	BlockStatement block = null;
+	List<NameExpression> throwsDeclaration = null;
+	List<Parameter> parameters = null;
+	int line,column;
+}
+{
+  <IDENTIFIER> { line = token.beginLine; column = token.beginColumn;}
+  parameters = FormalParameters() 
+  [ "throws" throwsDeclaration = NameList() ]
+  ( block = Block() | ";" )
+  
+  { return new ConstructorDeclaration(line,column, modifiers, parameters, throwsDeclaration, block); }
+
+}
+
+
+
+MethodDeclaration MethodDeclaration(Modifiers modifiers):
 {
 	Type type;
 	String name;
@@ -553,14 +564,13 @@ List ComponentFieldDeclaration(Modifiers modifiers):
   type = ReturnType()
   <IDENTIFIER> { name = token.image; } 
   parameters = FormalParameters() 
-  // old-style Java declaration not allowed in DataFormer ( "[" "]" { arrayCount++; } )* 
   [ "throws" throwsDeclaration = NameList() ]
   ( block = Block() | ";" )
   
   { return new MethodDeclaration(type.getLine(), type.getColumn(), modifiers, type, name, parameters, throwsDeclaration, block); }
 
 }
-
+
 Type ReturnType():
 {
 	Type ret;
@@ -628,9 +638,9 @@ NameExpression Name():
   { return ret; }
 }
 
-List NameList():
+List<NameExpression> NameList():
 {
-	List ret = null;
+	List<NameExpression> ret = null;
 	NameExpression name;
 }
 {
@@ -640,16 +650,21 @@ List NameList():
 }
 
 
-Type PropertyType():
+ComponentType ComponentType() : 
 {
-	Type ret;
+	int line,column;
+	ComponentType ret = null;
+	List<IOTypeParameter> params = null;
+	NameExpression name = null;
 }
 {
-   ret = Type()
-   { return ret; }
+  name = Name()
+  params = IOTypeParameters()
+  { return new ComponentType(name.line,name.column,name,params); }
 }
 
-Type Type() : 
+
+Type JavaType() : 
 {
 	Type ret;
 }
@@ -664,9 +679,9 @@ Type Type() :
 }
 
 
-List FormalParameters():
+List<Parameter> FormalParameters():
 {
-	List ret = new LinkedList();
+	List<Parameter> ret = new LinkedList<Parameter>();
 	Parameter param;
 }
 {
@@ -680,13 +695,14 @@ Parameter FormalParameter():
 {
 	Modifiers mods;
 	Type type;
-	VariableDeclaratorId id;
 	boolean isVarArg = false;
+	int line,column;
+	String name;
 }
 {
-  mods = Modifiers() type = Type() [ "..." { isVarArg = true; }] id = VariableDeclaratorId()
-  
-  { return new Parameter(type.getLine(),type.getColumn(),mods,type,isVarArg,id); }
+  mods = Modifiers() type = JavaType() [ "..." { isVarArg = true; }] 
+  <IDENTIFIER> { line = token.beginLine; column = token.beginColumn; name = token.image; }
+  { return new Parameter(line,column,mods,type,isVarArg,name); }
 }
 
 List Statements():
@@ -757,7 +773,7 @@ Statement BlockStatement():
 }
 
 {
- LOOKAHEAD( Modifiers() Type() <IDENTIFIER> )
+ LOOKAHEAD( Modifiers() JavaType() <IDENTIFIER> )
   expr = LocalVariableDeclaration() ";"
   { return new ExpressionStatement(expr.getLine(),expr.getColumn(),expr); }
 |
@@ -774,7 +790,7 @@ VariableDeclarationExpression LocalVariableDeclaration():
 }
 {
   modifiers = Modifiers() 
-  type = Type() 
+  type = JavaType() 
   var = VariableDeclarator()
   { declarators = add(declarators,var); }
   ( "," var = VariableDeclarator() { add(declarators,var); })*
@@ -784,24 +800,14 @@ VariableDeclarationExpression LocalVariableDeclaration():
 
 VariableDeclarator VariableDeclarator():
 {
-	VariableDeclaratorId id;
 	Expression init = null;	
-}
-{
-  id = VariableDeclaratorId() [ "=" init = VariableInitializer() ]
-  { return new VariableDeclarator(id.getLine(), id.getColumn(), id, init); }
-}
-
-VariableDeclaratorId VariableDeclaratorId():
-{
 	int line,column;
-	String name; 
+	String name;
 }
 {
-  <IDENTIFIER> { name = token.image; line = token.beginLine; column = token.beginColumn; } 
-  // array declaration via identifier is not supported: ( "[" "]" { arrayCount++; })*
-  
-  { return new VariableDeclaratorId(line,column,name); }
+  <IDENTIFIER> { line = token.beginLine; column = token.beginColumn; name = token.image; }
+   [ "=" init = VariableInitializer() ]
+  { return new VariableDeclarator(line, column, name, init); }
 }
 
 
@@ -1397,7 +1403,7 @@ List ForInit():
 }
 {
   (
-	  LOOKAHEAD( Modifiers() Type() <IDENTIFIER> )
+	  LOOKAHEAD( Modifiers() JavaType() <IDENTIFIER> )
 	  expr = LocalVariableDeclaration() { ret = new LinkedList(); ret.add(expr); }
 	|
 	  ret = ExpressionList()
@@ -1598,6 +1604,16 @@ Expression AssignmentOrStreamExpression(Expression lhs) :
     { return expr; }
 } 
 
+Expression NewExpression() : {
+	NameExpression name;
+	List<Expression> arguments = null;
+	
+}
+{
+	"new" Name() "<" NameList() ">" Arguments() ";" 
+	{ return null;}
+}
+
 AssignOperatorEnum AssignmentOperator():
 {
 	AssignOperatorEnum ret;
@@ -1620,62 +1636,40 @@ AssignOperatorEnum AssignmentOperator():
   { return ret; }
 }
 
-ComponentVariableDeclaration ComponentVariableDeclaration(Modifiers mods):
+TransformationFieldDeclaration TransformationFieldDeclaration(Modifiers mods):
 {
 	NameExpression className;
-	List ioTypes = null;
+	List<NameExpression> ioParams = null;
 	String name = null;
-	List body = null;
 	
 }
 {
-	className = ComponentClassName() 
-	ioTypes = ComponentInputOutputTypes()
+	className = Name() 
+	"<" ioParams = NameList() ">"
 	<IDENTIFIER> { name=token.image; }
-	[ "{" body = ComponentBodyDeclaration() "}" ] ";"
-	
-	{ return new ComponentVariableDeclaration(className.getLine(),className.getColumn(),mods,className,ioTypes,name,body); }	
+	"="
+	NewExpression()	
+	{ return new TransformationFieldDeclaration(className.getLine(),className.getColumn(),mods,className,ioParams,name); }	
 }
-
-List ComponentInputOutputTypes() :
-{
-	Type t = null;
-	List ret = null;
-}
-{
-	"<" t = Type() { ret=add(ret,t); } ( "," t = Type() { add(ret,t); })* ">"
-	
-	{ return ret; }
-}
-
-
-NameExpression ComponentClassName() :
-{
-	NameExpression name = null;
-}
-{
-	name = Name()
-	
-	{ return name; }
-}
-
 
 RecordDeclaration RecordDeclaration(Modifiers mods) : {
 	String name;
 	int line,column;
 	FieldDeclaration field = null;
-	List fields = null;
+	List<FieldDeclaration> fields = null;
+	List<NameExpression> ext = null;
 }
 {
 	// Modifiers already matched in the caller!
 	"record"
 	<IDENTIFIER> { line=token.beginLine; column=token.beginColumn; name=token.image; }
+	[ "extends" ext = NameList() ]
 	"{"
 		field = FieldDeclaration() { fields = add(fields,field); } 
 		( field = FieldDeclaration()  { add(fields,field); } )*
 	"}"
 	
-	{ return new RecordDeclaration(line,column,mods,name,fields); }		
+	{ return new RecordDeclaration(line,column,mods,name,fields,ext); }		
 }
 
 
@@ -1690,7 +1684,7 @@ FieldDeclaration FieldDeclaration() #void:
 	String delimiter = null;
 } 
 {
-	type = Type()
+	type = JavaType()
 	<IDENTIFIER> { line=token.beginLine; column=token.beginColumn; name=token.image; }
 	
 	(
