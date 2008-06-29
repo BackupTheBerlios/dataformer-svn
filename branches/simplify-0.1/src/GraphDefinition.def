@@ -1,15 +1,12 @@
 package cz.dataformer.test;
 
-import cz.dataformer.someimport.*;
-
 public transformation MyTransformation {
 
 	public component Filter<I> {
 		out port I validOutput;
 		in port I input;
 		optional out port I invalidOutput;
-		
-		
+
 		abstract boolean testCondition(I inputRecord);
 		
 		main {
@@ -24,6 +21,24 @@ public transformation MyTransformation {
 		}
 	}
 
+	// record structure expected by the filter specification below
+ 	public record FilterMetaRecord {
+ 		int firstField delimiter(",");
+ 		boolean thirdField delimiter("\n");
+ 	}
+
+	// filter component "data interface" definition ("specification" for a data type)
+	public component Filter<I extends FilterMetaRecord> extends Filter<I> {
+		private int filterThreshold;
+
+		public Filter(int threshold) {
+			filterThreshold = threshold;
+		}
+		
+		boolean testCondition(I inputRecord) {
+			return inputRecord.code > filterThreshold && inputRecord.flag;
+		}
+	}
 
 	public component Generator<T> {
 		public out port T output;
@@ -41,11 +56,24 @@ public transformation MyTransformation {
 			}
 		}
 	}
+	
+
+	// generator "implementation" for a data type
+	public component Generator<InputRecord> extends Generator<T> {
+		private InputRecord generateMessage() {
+			InputRecord ret;
+			
+			ret.firstField=1;
+			ret.secondField=2;
+			ret.thirdField=true;
+			
+			return ret;
+		}
+	}
 
 
 	public abstract component TrashBin<T> {
 		public in port T input;
-		
 		
 		main {
 			T rec;
@@ -56,39 +84,23 @@ public transformation MyTransformation {
 	}
 
 
-	public record InputRecord {
+	public record InputRecord extends FilterMetaRecord {
 		int firstField delimiter("|");
 		int secondField length(20);
 		boolean thirdField delimiter("\n");
 	}
 	
 	// component as transformation field
-	private Generator<InputRecord> reader {
-		private InputRecord generateMessage() {
-	
-			InputRecord rec;
-			rec.firstField = 1;
-			rec.secondField = 2;
-			rec.thirdField = true;
-				
-			return rec;
-		}
-	};
+	private Generator<InputRecord> reader = new Generator<InputRecord>();
 		
 	// filter inline implementation
-	private Filter<InputRecord> filter {
-		public boolean testCondition(InputRecord inputRec) {
-			return inputRec.secondField;
-		}
-	};
+	private Filter<InputRecord> filter = new Filter<InputRecord>(100);
 	
 	// trash bin implementation
-	private TrashBin<InputRecord> trashBin;
+	private TrashBin<InputRecord> trashBin = new TrashBin<InputRecord>();
 	
 	
 	graph {
-		trashBin.errorMessage = "Deleted record";
-	
 		connect reader.output -> filter.input;
 		connect filter.validOutput -> trashBin.input;
 	}
