@@ -4,13 +4,11 @@ import java.util.List;
 
 import cz.dataformer.DataFormerNode;
 import cz.dataformer.ast.body.ComponentFieldDeclaration;
-import cz.dataformer.ast.body.ComponentProperty;
 import cz.dataformer.ast.body.MainBlock;
 import cz.dataformer.ast.body.MethodDeclaration;
 import cz.dataformer.ast.body.Parameter;
 import cz.dataformer.ast.body.Port;
 import cz.dataformer.ast.body.VariableDeclarator;
-import cz.dataformer.ast.body.VariableDeclaratorId;
 import cz.dataformer.ast.expression.ArrayAccessExpression;
 import cz.dataformer.ast.expression.ArrayAllocationExpression;
 import cz.dataformer.ast.expression.ArrayInitializerExpression;
@@ -118,10 +116,6 @@ public class NodeVisitorImpl implements NodeVisitor {
 		visitNode(n.main);
 	}
 
-	public void visit(ComponentProperty n) {
-		visitNode(n.type);
-	}
-
 	public void visit(MainBlock n) {
 		visitNode(n.block);		
 	}
@@ -135,20 +129,14 @@ public class NodeVisitorImpl implements NodeVisitor {
 
 	public void visit(Parameter n) {
 		visitNode(n.type);
-		visitNode(n.id);
 	}
 
 	public void visit(Port n) {
-		visitNode(n.ioType);
+		// nothing to do
 	}
 
 	public void visit(VariableDeclarator n) {
-		visitNode(n.id);
 		visitNode(n.init);
-	}
-
-	public void visit(VariableDeclaratorId n) {
-		// nothing to do
 	}
 
 	public void visit(ClassOrInterfaceType n) {
@@ -279,10 +267,9 @@ public class NodeVisitorImpl implements NodeVisitor {
 		visitNode(n.condition);
 	}
 
-	public void visit(ComponentVariableDeclaration c) {
+	public void visit(TransformationFieldDeclaration c) {
 		visitNode(c.type);
-		visitNode(c.ioTypes);
-		visitNode(c.body);
+		visitNode(c.ioParams);
 	}
 
 	public void visit(ImportDeclaration n) {

@@ -5,13 +5,11 @@ package cz.dataformer.ast;
 
 import cz.dataformer.DataFormerNode;
 import cz.dataformer.ast.body.ComponentFieldDeclaration;
-import cz.dataformer.ast.body.ComponentProperty;
 import cz.dataformer.ast.body.MainBlock;
 import cz.dataformer.ast.body.MethodDeclaration;
 import cz.dataformer.ast.body.Parameter;
 import cz.dataformer.ast.body.Port;
 import cz.dataformer.ast.body.VariableDeclarator;
-import cz.dataformer.ast.body.VariableDeclaratorId;
 import cz.dataformer.ast.expression.ArrayAccessExpression;
 import cz.dataformer.ast.expression.ArrayAllocationExpression;
 import cz.dataformer.ast.expression.ArrayInitializerExpression;
@@ -68,7 +66,7 @@ public interface NodeVisitor {
 
     public void visit(ComponentDeclaration n);
 
-    public void visit(ComponentVariableDeclaration c);
+    public void visit(TransformationFieldDeclaration c);
     
     public void visit(ImportDeclaration n);
 
@@ -89,8 +87,6 @@ public interface NodeVisitor {
 
     public void visit(ComponentFieldDeclaration n);
 
-    public void visit(ComponentProperty n);
-
     public void visit(MainBlock n);
 
     public void visit(MethodDeclaration n);
@@ -100,8 +96,6 @@ public interface NodeVisitor {
     public void visit(Port n);
 
     public void visit(VariableDeclarator n);
-
-    public void visit(VariableDeclaratorId n);
 
     //- Type ----------------------------------------------
 

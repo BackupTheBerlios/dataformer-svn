@@ -14,12 +14,12 @@ public class Transformation extends DataFormerNode {
 	public String name;
 	public List<ComponentDeclaration> components;
 	public List<RecordDeclaration> records;
-	public List<ComponentVariableDeclaration> variables;
+	public List<TransformationFieldDeclaration> variables;
 	public List<ConnectStatement> graph;
 	public NameExpression packageName;
 	public List<ImportDeclaration> imports;
 
-	public Transformation(int line, int column, Modifiers mods, String name, List<ComponentDeclaration> components, List<RecordDeclaration> records, List<ComponentVariableDeclaration> variables, List<ConnectStatement> graph, NameExpression packageName, List<ImportDeclaration> imports) {
+	public Transformation(int line, int column, Modifiers mods, String name, List<ComponentDeclaration> components, List<RecordDeclaration> records, List<TransformationFieldDeclaration> variables, List<ConnectStatement> graph, NameExpression packageName, List<ImportDeclaration> imports) {
 		super(line, column);
 		this.modifiers = mods;
 		this.name = name;

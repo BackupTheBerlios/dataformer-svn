@@ -5,14 +5,12 @@ import java.util.ListIterator;
 
 import cz.dataformer.DataFormerNode;
 import cz.dataformer.ast.body.ComponentFieldDeclaration;
-import cz.dataformer.ast.body.ComponentProperty;
 import cz.dataformer.ast.body.MainBlock;
 import cz.dataformer.ast.body.MethodDeclaration;
 import cz.dataformer.ast.body.Modifiers;
 import cz.dataformer.ast.body.Parameter;
 import cz.dataformer.ast.body.Port;
 import cz.dataformer.ast.body.VariableDeclarator;
-import cz.dataformer.ast.body.VariableDeclaratorId;
 import cz.dataformer.ast.expression.ArrayAccessExpression;
 import cz.dataformer.ast.expression.ArrayAllocationExpression;
 import cz.dataformer.ast.expression.ArrayInitializerExpression;
@@ -131,14 +129,6 @@ public abstract class NodeTranslator implements NodeVisitor {
 		this.transResult = n;
 	}
 
-	public void visit(ComponentProperty n) {
-		n.modifiers = translateModifiers(n.modifiers);
-		n.name = translateName(n.name);
-		n.type = translate(n.type);
-		
-		this.transResult = n;
-	}
-
 	public void visit(MainBlock n) {
 		n.block = translate(n.block);
 		
@@ -159,28 +149,21 @@ public abstract class NodeTranslator implements NodeVisitor {
 	public void visit(Parameter n) {
 		n.modifiers = translateModifiers(n.modifiers);
 		n.type = translate(n.type);
-		n.id = translate(n.id);
+		n.id = translateName(n.id);
 
 		this.transResult = n;
 	}
 
 	public void visit(Port n) {
 		n.modifiers = translateModifiers(n.modifiers);
-		n.ioType = translate(n.ioType);
 		n.name = translateName(n.name);
 		
 		this.transResult = n;
 	}
 
 	public void visit(VariableDeclarator n) {
-		n.id = translate(n.id);
+		n.id = translateName(n.id);
 		n.init = translate(n.init);
-		
-		this.transResult = n;
-	}
-
-	public void visit(VariableDeclaratorId n) {
-		n.name= translateName(n.name);
 		
 		this.transResult = n;
 	}
@@ -349,12 +332,11 @@ public abstract class NodeTranslator implements NodeVisitor {
 		this.transResult = n;
 	}
 
-	public void visit(ComponentVariableDeclaration c) {
+	public void visit(TransformationFieldDeclaration c) {
 		c.modifiers = translateModifiers(c.modifiers);
 		c.type = translate(c.type);
-		c.ioTypes = translate(c.ioTypes);
+		c.ioParams = translate(c.ioParams);
 		c.name = translateName(c.name);
-		c.body = translate(c.body);
 		
 		this.transResult = c;
 	}
