@@ -23,7 +23,7 @@ public class ModelBuilder extends NodeVisitorImpl {
 	
 	private static final ModelBuilder INSTANCE = new ModelBuilder();
 	private ProblemReporter pr = ProblemReporter.getInstance();
-
+	private List<ComponentModel> topoRoots = new LinkedList<ComponentModel>();
 	
 	
 	private XformEntry current;
@@ -70,10 +70,12 @@ public class ModelBuilder extends NodeVisitorImpl {
 	}
 	
 	public void visit(RecordDeclaration ast) {
-		RecordModel rec = new RecordModel(ast,(TransformationModel)owner);
-		ModelNode prevOwner = owner;
+		RecordModel rec = new RecordModel(ast,(TransformationModel)this.owner);
+		ModelNode prevOwner = this.owner;
 		
+		this.owner = rec;
 		super.visit(ast);
+		owner = prevOwner;
 		
 		if (! rec.hasFields()) {
 			pr.recordHasNoFields(ast);
@@ -83,7 +85,6 @@ public class ModelBuilder extends NodeVisitorImpl {
 			pendingExtends.add(rec);
 		}
 		
-		owner = prevOwner;
 	}
 	
 	
@@ -116,17 +117,24 @@ public class ModelBuilder extends NodeVisitorImpl {
 		}
 	
 		TransformationModel prevOwner = owner;
-		
-		super.visit(ast);
 
-		if (comp.numInputPorts() == 0 && comp.numOutputPorts() == 0) {
-			pr.componentHasNoPorts(ast);
+		this.owner = comp;
+		super.visit(ast);
+		this.owner = prevOwner;
+		
+		if (comp.numInputPorts() == 0 ) {
+			if (comp.numOutputPorts() == 0) {
+				// component must have at least one input or output port
+				pr.componentHasNoPorts(ast);
+			} else {
+				markTopologicRoot(comp);
+			}
 		}
 		
-		this.owner = prevOwner;
 	}
 	
 	
+
 	public void visit(Port ast) {
 		ComponentModel component = (ComponentModel)this.owner;
 		// check if type parameter referenced by port is among parameters declared by component
@@ -138,6 +146,12 @@ public class ModelBuilder extends NodeVisitorImpl {
 		PortModel port = new PortModel(ast,component);
 		component.addPort(port);
 	}
+	
+
+	private void markTopologicRoot(ComponentModel comp) {
+		topoRoots.add(comp);
+	}
+
 	
 	/* Additional syntactic checks */
 	// isArrayInitializerUsedWithArrayVariable - java?
