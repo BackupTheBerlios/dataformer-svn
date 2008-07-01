@@ -1,19 +1,12 @@
 package cz.dataformer.compiler.model;
 
-import cz.dataformer.ast.expression.NameExpression;
-import cz.dataformer.compiler.Utilities;
+import cz.dataformer.ast.PackageDeclaration;
 
-public class PackageModel extends ModelNode {
+public class PackageModel extends NamedModelNode {
 
-	private String name;
 
-	public PackageModel(NameExpression ast, TransformationModel owner) {
+	public PackageModel(PackageDeclaration ast, TransformationModel owner) {
 		super(ast,owner);
-		this.name = Utilities.nameToString(ast);
-	}
-	
-	public String name() {
-		return name;
 	}
 	
 }

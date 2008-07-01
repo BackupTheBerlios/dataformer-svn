@@ -13,6 +13,8 @@ public class TransformationModel extends ModelNode {
 	private Map<String,ImportModel> imports = new HashMap<String,ImportModel>();
 	private Map<String,TransformationModel> depends = new HashMap<String,TransformationModel>();
 	private Map<String,ComponentModel> components;
+	private Map<String,RecordModel> records = new HashMap<String,RecordModel>();
+	
 	
 	public TransformationModel(Transformation ast) {
 		super(ast,null);
@@ -53,6 +55,18 @@ public class TransformationModel extends ModelNode {
 	
 	public LinkedList<ImportModel> getImports() {
 		return new LinkedList<ImportModel>(imports.values());
+	}
+	
+	public void addRecord(RecordModel rec) {
+		
+	}
+
+	public RecordModel getRecord(String name) {
+		return records.get(name);
+	}
+
+	public ComponentModel getComponent(String name) {
+		return components.get(name);
 	}
 	
 }

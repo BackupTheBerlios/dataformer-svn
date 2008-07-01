@@ -3,15 +3,15 @@
  */
 package cz.dataformer.ast.body;
 
-import cz.dataformer.DataFormerNode;
+import cz.dataformer.NamedDataFormerNode;
 
 /**
  * @author mtomcany
  */
-public abstract class BodyDeclaration extends DataFormerNode {
+public abstract class BodyDeclaration extends NamedDataFormerNode {
 
-    public BodyDeclaration(int line, int column) {
-        super(line, column);
+    public BodyDeclaration(int line, int column, String name) {
+        super(line, column, name);
     }
     
     

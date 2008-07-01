@@ -20,17 +20,15 @@ public class MethodDeclaration extends BodyDeclaration {
     public Modifiers modifiers;
     /** Return type is ONLY null for constructor */
     public Type returnType;
-    public String name;
     public List<Parameter> parameters;
     public List<NameExpression> throws_;
     public BlockStatement block;
     public MethodSymbol symbol;
     
     public MethodDeclaration(int line, int column, Modifiers modifiers, Type returnType, String name, List<Parameter> parameters, List<NameExpression> throws_, BlockStatement block) {
-        super(line, column);
+        super(line, column, name);
         this.modifiers = modifiers;
         this.returnType = returnType;
-        this.name = name;
         this.parameters = parameters;
         this.throws_ = throws_;
         this.block = block;

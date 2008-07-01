@@ -18,7 +18,7 @@ public final class ComponentFieldDeclaration extends BodyDeclaration {
     public VariableSymbol symbol;
 
     public ComponentFieldDeclaration(int line, int column, Modifiers modifiers, Type type, VariableDeclarator variable) {
-        super(line, column);
+        super(line, column, variable.id);
         this.modifiers = modifiers;
         this.type = type;
         this.variable = variable;

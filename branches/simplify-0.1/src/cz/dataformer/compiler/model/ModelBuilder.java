@@ -29,6 +29,7 @@ public class ModelBuilder extends NodeVisitorImpl {
 	private XformEntry current;
 	private ModelNode owner;
 	private CompilerEnvironment env;
+	// records and components with unresolved extends hierarchy
 	private List<ModelNode> pendingExtends = new LinkedList<ModelNode>();
 	
 	public static ModelBuilder getInstance() {
@@ -57,8 +58,8 @@ public class ModelBuilder extends NodeVisitorImpl {
 
 	public void visit(ImportDeclaration ast) {
 		TransformationModel t = (TransformationModel)owner;
-		String fqdn = Utilities.nameToString(ast.name);
-		if (t.getImport(fqdn) != null) {
+		
+		if (t.getImport(ast.name) != null) {
 			pr.duplicateDeclaration("Duplicate import declaration",ast);
 			return;
 		}
@@ -70,12 +71,24 @@ public class ModelBuilder extends NodeVisitorImpl {
 	}
 	
 	public void visit(RecordDeclaration ast) {
-		RecordModel rec = new RecordModel(ast,(TransformationModel)this.owner);
+		TransformationModel t = (TransformationModel)this.owner;
+		
+		if (t.getRecord(ast.name) != null) {
+			pr.duplicateDeclaration("Duplicate record declaration", ast);
+			return;
+		}
+		
+		if (t.getComponent(ast.name) != null) {
+			pr.duplicateDeclaration("Component with the same name exists", ast);
+			return;
+		}
+		
+		RecordModel rec = new RecordModel(ast,t);
 		ModelNode prevOwner = this.owner;
 		
 		this.owner = rec;
 		super.visit(ast);
-		owner = prevOwner;
+		this.owner = prevOwner;
 		
 		if (! rec.hasFields()) {
 			pr.recordHasNoFields(ast);
@@ -84,6 +97,8 @@ public class ModelBuilder extends NodeVisitorImpl {
 		if (ast.extend != null) {
 			pendingExtends.add(rec);
 		}
+		
+		t.addRecord(rec);
 		
 	}
 	
@@ -96,18 +111,34 @@ public class ModelBuilder extends NodeVisitorImpl {
 		}
 		
 		RecordModel rec = (RecordModel)owner;
+		if (rec.getField(ast.name) != null) {
+			pr.duplicateDeclaration("Duplicate field declaration", ast);
+			return;
+		}
+		
 		FieldModel field = new FieldModel(ast,rec);
 		rec.addField(field);
 		
 	}
 	
 	public void visit(ComponentDeclaration ast) {
-		TransformationModel owner = (TransformationModel)this.owner;
-		ComponentModel comp = new ComponentModel(ast,owner);
+		TransformationModel t = (TransformationModel)this.owner;
+		if (t.getComponent(ast.name) != null) {
+			pr.duplicateDeclaration("Duplicate component declaration", ast);
+			return;
+		}
+		
+		if (t.getRecord(ast.name) != null) {
+			pr.duplicateDeclaration("Component with the same name exists",ast);
+			return;
+		}
+		
+		ComponentModel comp = new ComponentModel(ast,t);
 		
 		
 		LinkedList<String> ioParams = new LinkedList<String>();
 		for (IOTypeParameter p : ast.ioParams) {
+			// TODO: check for duplicates, create Model
 			ioParams.add(p.name);
 		}
 		comp.setIOParams(ioParams);
@@ -116,7 +147,7 @@ public class ModelBuilder extends NodeVisitorImpl {
 			pendingExtends.add(comp); 
 		}
 	
-		TransformationModel prevOwner = owner;
+		TransformationModel prevOwner = t;
 
 		this.owner = comp;
 		super.visit(ast);
@@ -133,8 +164,6 @@ public class ModelBuilder extends NodeVisitorImpl {
 		
 	}
 	
-	
-
 	public void visit(Port ast) {
 		ComponentModel component = (ComponentModel)this.owner;
 		// check if type parameter referenced by port is among parameters declared by component

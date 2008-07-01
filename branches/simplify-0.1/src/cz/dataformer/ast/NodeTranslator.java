@@ -342,7 +342,7 @@ public abstract class NodeTranslator implements NodeVisitor {
 	}
 
 	public void visit(ImportDeclaration n) {
-		n.name = translate(n.name);
+		n.name = translateName(n.name);
 		this.transResult = n;
 	}
 

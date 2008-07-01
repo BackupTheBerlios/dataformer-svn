@@ -21,4 +21,9 @@ public class RecordModel extends ModelNode {
 	public boolean hasFields() {
 		return fields.size() > 0;
 	}
+
+	public FieldModel getField(String name) {
+		return fields.get(name);
+	}
+	
 }

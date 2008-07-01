@@ -12,7 +12,7 @@ public class MainBlock extends BodyDeclaration {
 	public BlockStatement block;
 
 	public MainBlock(int line, int column, BlockStatement block) {
-		super(line, column);
+		super(line, column, "main");
 		this.block = block;
 	}
 	

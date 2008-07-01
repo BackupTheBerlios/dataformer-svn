@@ -7,12 +7,11 @@ public class Port extends BodyDeclaration {
 
 	public Modifiers modifiers;
 	public String ioType;
-	public String name;
 	public VariableSymbol symbol;
 	
 	
 	public Port(int line, int column, Modifiers modifiers, String name, String type) {
-		super(line, column);
+		super(line, column, name);
 		this.modifiers = modifiers;
 		this.name = name;
 		this.ioType = type;

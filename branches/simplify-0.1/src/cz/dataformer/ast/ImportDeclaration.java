@@ -3,21 +3,17 @@
  */
 package cz.dataformer.ast;
 
-import cz.dataformer.DataFormerNode;
-import cz.dataformer.ast.expression.NameExpression;
+import cz.dataformer.NamedDataFormerNode;
 
 /**
  * @author mtomcany
  */
-public final class ImportDeclaration extends DataFormerNode {
-
-    public NameExpression name;
+public final class ImportDeclaration extends NamedDataFormerNode {
 
     public final boolean isAsterisk;
 
-    public ImportDeclaration(int line, int column, NameExpression name, boolean isAsterisk) {
-        super(line, column);
-        this.name = name;
+    public ImportDeclaration(int line, int column, String name, boolean isAsterisk) {
+        super(line, column, name);
         this.isAsterisk = isAsterisk;
     }
 

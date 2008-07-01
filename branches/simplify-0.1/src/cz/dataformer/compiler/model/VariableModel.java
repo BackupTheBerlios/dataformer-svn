@@ -1,13 +1,12 @@
 package cz.dataformer.compiler.model;
 
-import cz.dataformer.DataFormerNode;
+import cz.dataformer.NamedDataFormerNode;
 
-public class VariableModel extends ModelNode {
+public class VariableModel extends NamedModelNode {
 
-	protected String name;
 	protected TypeModel type;
 	
-	public VariableModel(DataFormerNode ast, ModelNode owner) {
+	public VariableModel(NamedDataFormerNode ast, ModelNode owner, String name) {
 		super(ast, owner);
 	}
 	

@@ -4,9 +4,8 @@ import java.util.List;
 
 import cz.dataformer.ast.ComponentDeclaration;
 
-public class ComponentModel extends ModelNode {
+public class ComponentModel extends NamedModelNode {
 	
-	private String name;
 	private List<String> ioParams;
 	private List<PortModel> inputPorts;
 	private List<PortModel> outputPorts;
@@ -14,8 +13,6 @@ public class ComponentModel extends ModelNode {
 
 	public ComponentModel(ComponentDeclaration ast, TransformationModel owner) {
 		super(ast, owner);
-		this.name = ast.name;
-		
 	}
 	
 	public void addPort(PortModel port) {

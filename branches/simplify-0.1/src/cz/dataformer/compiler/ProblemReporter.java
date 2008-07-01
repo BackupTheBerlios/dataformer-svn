@@ -90,13 +90,13 @@ public class ProblemReporter {
 	
 	public void ioTypeCannotBeResolved(Port n) {
 		ProblemMessage msg = new ProblemMessage(n.line,n.column,
-				n.ioType + " cannot be resolved to an I/O type");
+				n.ioType + " cannot be resolved to an I/O parameter");
 		messages.add(msg);
 	}
 
 	public void typeDoesNotMatchIOParams(Port n) {
 		ProblemMessage msg = new ProblemMessage(n.line,n.column,
-				n.ioType + "does not match any of component I/O types");
+				n.ioType + "does not match I/O parameters declarated by component");
 		messages.add(msg);
 	}
 

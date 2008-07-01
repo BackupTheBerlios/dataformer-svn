@@ -273,7 +273,7 @@ public class NodeVisitorImpl implements NodeVisitor {
 	}
 
 	public void visit(ImportDeclaration n) {
-		visitNode(n.name);		
+		// nothing to do
 	}
 
 	public void visit(FixedFieldDeclaration f) {
