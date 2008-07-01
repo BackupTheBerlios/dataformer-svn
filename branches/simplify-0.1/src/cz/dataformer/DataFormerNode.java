@@ -6,7 +6,6 @@ import cz.dataformer.ast.NodeVisitor;
 public abstract class DataFormerNode {
 
     public final int line;
-
     public final int column;
 
     public DataFormerNode(int line, int column) {
