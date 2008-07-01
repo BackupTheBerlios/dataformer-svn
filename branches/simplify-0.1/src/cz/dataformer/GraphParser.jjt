@@ -269,7 +269,7 @@ MORE :
  */
 Transformation Transformation() : 
 {
-	NameExpression packageName;
+	PackageDeclaration pkg;
 	List imports = null;
 	List components = null;
 	List records = null;
@@ -283,7 +283,7 @@ Transformation Transformation() :
 	int line,column;
 }
 {
-	packageName = Package()
+	pkg = Package()
 	imports = Imports()
 	
 	topLevelMods = Modifiers() "transformation" <IDENTIFIER> { line = token.beginLine; column = token.beginColumn; name = token.image; } "{"
@@ -298,35 +298,45 @@ Transformation Transformation() :
 	graph = GraphDeclaration()
 	"}"
 	
-	{ return new Transformation(line,column,topLevelMods,name,components,records,vars,graph,packageName,imports); }
+	{ return new Transformation(line,column,topLevelMods,name,components,records,vars,graph,pkg,imports); }
 	
 }
 
-NameExpression Package() :
+PackageDeclaration Package() :
 {
-	NameExpression name = null;
+	StringBuffer buf = new StringBuffer();
+	int line,column;
 }
 {
-	"package" name = Name() ";"
+	"package" { line = token.beginLine; column = token.beginColumn; }
+	<IDENTIFIER> { buf.append(token.image); }
+  	(  "." <IDENTIFIER> { buf.append(".").append(token.image); } )*
+	 ";"
 	
-	{ return name; }
+	{ return new PackageDeclaration(line,column,buf.toString()); }
 }
 
 List<ImportDeclaration> Imports() : 
 {
 	List ret = null;
-	NameExpression name = null;
+	StringBuffer buf = new StringBuffer();
 	ImportDeclaration id= null;
 	int line,column;
 	boolean isAsterisk = false;
 }
 {
 	( 	
-		"import" { line=token.beginLine; column = token.beginColumn; }
-		name = Name()
-		// Note that NameExpression for .* import will only contain the prefix, asterisk is matched here
-		[ "." "*" { isAsterisk = true; } ] ";"
-		{ ret = add(ret, new ImportDeclaration(line,column,name,isAsterisk)); } 
+		"import" { line=token.beginLine; column = token.beginColumn; buf.delete(0,buf.length()); }
+		<IDENTIFIER> { buf.append(token.image); }
+	  	(  "." 
+	  		(
+	  			<IDENTIFIER> { buf.append(".").append(token.image); }
+	  			|
+	  			"*"  { isAsterisk = true; }
+	  		)
+	  	)*
+		";"	
+		{ ret = add(ret, new ImportDeclaration(line,column,buf.toString(),isAsterisk)); } 
 	)*
 	
 	{ return ret; }
