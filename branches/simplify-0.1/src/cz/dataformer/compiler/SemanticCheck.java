@@ -1,5 +1,7 @@
 package cz.dataformer.compiler;
 
+import cz.dataformer.compiler.model.ModelBuilder;
+
 
 public class SemanticCheck {
 	
@@ -15,8 +17,8 @@ public class SemanticCheck {
 	public void check(XformEntry entry) {
 		current = entry;
 		
-		ASTAnnotator annotator = new ASTAnnotator();
-		annotator.resolveSymbols(current);
+		ModelBuilder modelBuilder = ModelBuilder.getInstance();
+		modelBuilder.buildModel(current);
 		
 //		TypeVerifier verifier = new TypeVerifier();
 //		verifier.verify(current);
