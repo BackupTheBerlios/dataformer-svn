@@ -1,7 +1,6 @@
 package cz.dataformer.ast.type;
 
 import cz.dataformer.ast.NodeVisitor;
-import cz.dataformer.ast.expression.NameExpression;
 
 
 /**
@@ -13,9 +12,9 @@ import cz.dataformer.ast.expression.NameExpression;
 public class IOTypeParameter extends Type {
 
 	public String name;
-	public NameExpression extension;
+	public String extension;
 	
-	public IOTypeParameter(int line, int column, String name, NameExpression extension) {
+	public IOTypeParameter(int line, int column, String name, String extension) {
 		super(line, column);
 		this.name = name;
 		this.extension = extension;
