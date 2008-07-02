@@ -7,7 +7,6 @@ import cz.dataformer.ast.ComponentDeclaration;
 import cz.dataformer.ast.ImportDeclaration;
 import cz.dataformer.ast.NodeVisitorImpl;
 import cz.dataformer.ast.Transformation;
-import cz.dataformer.ast.body.ComponentFieldDeclaration;
 import cz.dataformer.ast.body.Port;
 import cz.dataformer.ast.record.FieldDeclaration;
 import cz.dataformer.ast.record.RecordDeclaration;
@@ -15,7 +14,6 @@ import cz.dataformer.ast.type.IOTypeParameter;
 import cz.dataformer.ast.type.PrimitiveType;
 import cz.dataformer.compiler.CompilerEnvironment;
 import cz.dataformer.compiler.ProblemReporter;
-import cz.dataformer.compiler.Utilities;
 import cz.dataformer.compiler.XformEntry;
 
 
@@ -39,7 +37,7 @@ public class ModelBuilder extends NodeVisitorImpl {
 	
 	public void buildModel(XformEntry entry) {
 		current = entry;
-		entry.getAst().accept(this);
+		current.getAst().accept(this);
 		
 		// buildExtends()
 	}
@@ -65,7 +63,6 @@ public class ModelBuilder extends NodeVisitorImpl {
 		}
 		
 		ImportModel im = new ImportModel(ast,owner);
-		im.setStarImport(ast.isAsterisk);
 		t.addImport(im);
 		
 	}
@@ -90,7 +87,7 @@ public class ModelBuilder extends NodeVisitorImpl {
 		super.visit(ast);
 		this.owner = prevOwner;
 		
-		if (! rec.hasFields()) {
+		if (rec.numFields() < 1) {
 			pr.recordHasNoFields(ast);
 		}
 		
@@ -136,10 +133,14 @@ public class ModelBuilder extends NodeVisitorImpl {
 		ComponentModel comp = new ComponentModel(ast,t);
 		
 		
-		LinkedList<String> ioParams = new LinkedList<String>();
+		LinkedList<TypeParamModel> ioParams = new LinkedList<TypeParamModel>();
 		for (IOTypeParameter p : ast.ioParams) {
-			// TODO: check for duplicates, create Model
-			ioParams.add(p.name);
+			TypeParamModel model = new TypeParamModel(p,comp);
+			if (ioParams.contains(model)) {
+				pr.duplicateDeclaration("Duplicate IO type parameter declaration", p);
+			} else {
+				ioParams.add(model);
+			}
 		}
 		comp.setIOParams(ioParams);
 		

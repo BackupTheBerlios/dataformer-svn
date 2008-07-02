@@ -11,5 +11,9 @@ public class PrimitiveTypeModel extends TypeModel {
 		super(ast, owner);
 		type = ast.type;
 	}
+	
+	public String name() {
+		return type.getName();
+	}
 
 }

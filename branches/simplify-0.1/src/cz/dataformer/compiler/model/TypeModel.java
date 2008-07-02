@@ -1,10 +1,11 @@
 package cz.dataformer.compiler.model;
 
-import cz.dataformer.DataFormerNode;
+import cz.dataformer.ast.type.Type;
 
-public abstract class TypeModel extends ModelNode {
 
-	public TypeModel(DataFormerNode ast, ModelNode owner) {
+public abstract class TypeModel extends ModelNode implements NamedModelNode {
+
+	public TypeModel(Type ast, ModelNode owner) {
 		super(ast, owner);
 	}
 

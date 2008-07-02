@@ -12,7 +12,7 @@ public class TransformationModel extends ModelNode {
 	private PackageModel pkg;
 	private Map<String,ImportModel> imports = new HashMap<String,ImportModel>();
 	private Map<String,TransformationModel> depends = new HashMap<String,TransformationModel>();
-	private Map<String,ComponentModel> components;
+	private Map<String,ComponentModel> components = new HashMap<String,ComponentModel>();
 	private Map<String,RecordModel> records = new HashMap<String,RecordModel>();
 	
 	
