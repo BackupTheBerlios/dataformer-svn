@@ -511,12 +511,15 @@ List<IOTypeParameter> IOTypeParameters() :{
 
 IOTypeParameter IOTypeParameter():{
 	String name;
-	NameExpression extension=null;
+	StringBuffer buf = new StringBuffer();
 	int line,column;
 }{   <IDENTIFIER> { name = token.image; line=token.beginLine; column=token.beginColumn;}
-   [ "extends" extension = Name() ]
+   [ "extends" 
+   	<IDENTIFIER> { buf.append(token.image); }
+  	(  "." <IDENTIFIER> { buf.append(".").append(token.image); } )* 
+   ]
    {
-   	return new IOTypeParameter(line,column,name,extension);
+   	return new IOTypeParameter(line,column,name,buf.toString());
    } }
 /*
  * Parses field declarations.
