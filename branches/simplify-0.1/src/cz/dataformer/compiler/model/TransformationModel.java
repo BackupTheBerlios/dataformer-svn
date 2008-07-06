@@ -6,7 +6,7 @@ import java.util.Map;
 
 import cz.dataformer.ast.Transformation;
 
-public class TransformationModel extends ModelNode {
+public class TransformationModel extends ModelNode implements NamedModelNode {
 
 	private String name;
 	private PackageModel pkg;

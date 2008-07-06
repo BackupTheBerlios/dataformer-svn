@@ -4,7 +4,7 @@ import cz.dataformer.ast.ImportDeclaration;
 
 public class ImportModel extends ModelNode implements NamedModelNode {
 
-	public ImportModel(ImportDeclaration ast, ModelNode owner) {
+	public ImportModel(ImportDeclaration ast, TransformationModel owner) {
 		super(ast,owner);
 	}
 	

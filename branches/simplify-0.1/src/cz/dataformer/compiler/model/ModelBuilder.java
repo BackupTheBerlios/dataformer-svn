@@ -7,6 +7,7 @@ import cz.dataformer.ast.ComponentDeclaration;
 import cz.dataformer.ast.ImportDeclaration;
 import cz.dataformer.ast.NodeVisitorImpl;
 import cz.dataformer.ast.Transformation;
+import cz.dataformer.ast.body.MethodDeclaration;
 import cz.dataformer.ast.body.Port;
 import cz.dataformer.ast.record.DelimitedFieldDeclaration;
 import cz.dataformer.ast.record.FieldDeclaration;
@@ -64,7 +65,7 @@ public class ModelBuilder extends NodeVisitorImpl {
 			return;
 		}
 		
-		ImportModel im = new ImportModel(ast,owner);
+		ImportModel im = new ImportModel(ast,t);
 		t.addImport(im);
 		
 	}
@@ -187,6 +188,11 @@ public class ModelBuilder extends NodeVisitorImpl {
 		component.addPort(port);
 	}
 	
+	
+	@Override
+	public void visit(MethodDeclaration n) {
+		
+	}
 
 	private void markTopologicRoot(ComponentModel comp) {
 		topoRoots.add(comp);

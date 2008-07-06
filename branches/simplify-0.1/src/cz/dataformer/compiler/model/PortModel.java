@@ -2,20 +2,18 @@ package cz.dataformer.compiler.model;
 
 import cz.dataformer.ast.body.Port;
 
-public class PortModel extends ModelNode {
+public class PortModel extends ModelNode implements NamedModelNode {
 
-	private String name;
-	private String ioParam;
-	private boolean isInput = false;
 	
-	public PortModel(Port ast, ModelNode owner) {
+	public PortModel(Port ast, ComponentModel owner) {
 		super(ast,owner);
-		this.name = ast.name;
-		this.ioParam = ast.ioType;
-		this.isInput = ast.isInput();
 	}
 	
 	public boolean isInput() {
-		return isInput;
+		return ((Port)ast).isInput();
+	}
+	
+	public String name() {
+		return ((Port)ast).name;
 	}
 }

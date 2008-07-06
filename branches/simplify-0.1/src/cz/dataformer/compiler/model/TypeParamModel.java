@@ -2,9 +2,9 @@ package cz.dataformer.compiler.model;
 
 import cz.dataformer.ast.type.IOTypeParameter;
 
-public class TypeParamModel extends TypeModel {
+public class TypeParamModel extends TypeModel implements NamedModelNode {
 
-	public TypeParamModel(IOTypeParameter ast, ModelNode owner) {
+	public TypeParamModel(IOTypeParameter ast, ComponentModel owner) {
 		super(ast, owner);
 	}
 	
