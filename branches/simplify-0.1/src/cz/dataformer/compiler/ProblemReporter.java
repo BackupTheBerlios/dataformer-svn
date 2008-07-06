@@ -96,7 +96,7 @@ public class ProblemReporter {
 
 	public void typeDoesNotMatchIOParams(Port n) {
 		ProblemMessage msg = new ProblemMessage(n.line,n.column,
-				n.ioType + "does not match I/O parameters declarated by component");
+				n.ioType + " does not match I/O parameters declarated by component");
 		messages.add(msg);
 	}
 
