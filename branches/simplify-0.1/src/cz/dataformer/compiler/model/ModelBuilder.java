@@ -8,7 +8,9 @@ import cz.dataformer.ast.ImportDeclaration;
 import cz.dataformer.ast.NodeVisitorImpl;
 import cz.dataformer.ast.Transformation;
 import cz.dataformer.ast.body.Port;
+import cz.dataformer.ast.record.DelimitedFieldDeclaration;
 import cz.dataformer.ast.record.FieldDeclaration;
+import cz.dataformer.ast.record.FixedFieldDeclaration;
 import cz.dataformer.ast.record.RecordDeclaration;
 import cz.dataformer.ast.type.IOTypeParameter;
 import cz.dataformer.ast.type.PrimitiveType;
@@ -76,7 +78,7 @@ public class ModelBuilder extends NodeVisitorImpl {
 		}
 		
 		if (t.getComponent(ast.name) != null) {
-			pr.duplicateDeclaration("Component with the same name exists", ast);
+			pr.duplicateDeclaration("Component with the same name already declared", ast);
 			return;
 		}
 		
@@ -99,8 +101,17 @@ public class ModelBuilder extends NodeVisitorImpl {
 		
 	}
 	
+	@Override
+	public void visit(DelimitedFieldDeclaration f) {
+		visitField(f);
+	}
 	
-	public void visit(FieldDeclaration ast) {
+	@Override
+	public void visit(FixedFieldDeclaration f) {
+		visitField(f);
+	}
+	
+	private void visitField(FieldDeclaration ast) {
 		
 		if (ast.type instanceof PrimitiveType == false) {
 			pr.fieldTypeCannotBeComposite(ast);
@@ -126,23 +137,22 @@ public class ModelBuilder extends NodeVisitorImpl {
 		}
 		
 		if (t.getRecord(ast.name) != null) {
-			pr.duplicateDeclaration("Component with the same name exists",ast);
+			pr.duplicateDeclaration("Record with the same name already declared",ast);
 			return;
 		}
 		
 		ComponentModel comp = new ComponentModel(ast,t);
 		
 		
-		LinkedList<TypeParamModel> ioParams = new LinkedList<TypeParamModel>();
 		for (IOTypeParameter p : ast.ioParams) {
 			TypeParamModel model = new TypeParamModel(p,comp);
-			if (ioParams.contains(model)) {
+			if (comp.getIOParam(p.name) != null) {
 				pr.duplicateDeclaration("Duplicate IO type parameter declaration", p);
 			} else {
-				ioParams.add(model);
+				comp.addIOParam(model);
 			}
 		}
-		comp.setIOParams(ioParams);
+		
 		
 		if (ast.extend != null) {
 			pendingExtends.add(comp); 
@@ -168,7 +178,7 @@ public class ModelBuilder extends NodeVisitorImpl {
 	public void visit(Port ast) {
 		ComponentModel component = (ComponentModel)this.owner;
 		// check if type parameter referenced by port is among parameters declared by component
-		if (! component.getIOParams().contains(ast.ioType)) {
+		if (component.getIOParam(ast.ioType) == null) {
 			pr.typeDoesNotMatchIOParams(ast);
 			return;
 		}
