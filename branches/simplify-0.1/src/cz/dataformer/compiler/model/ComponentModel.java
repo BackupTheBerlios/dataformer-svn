@@ -1,5 +1,6 @@
 package cz.dataformer.compiler.model;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -11,7 +12,7 @@ implements NamedModelNode {
 	private List<TypeParamModel> ioParams = new LinkedList<TypeParamModel>();
 	private List<PortModel> inputPorts = new LinkedList<PortModel>();
 	private List<PortModel> outputPorts = new LinkedList<PortModel>();
-	//private List<MethodModel> methods;
+	private HashMap<String,MethodModel> methods = new HashMap<String,MethodModel>();
 
 	public ComponentModel(ComponentDeclaration ast, TransformationModel owner) {
 		super(ast, owner);
@@ -53,6 +54,10 @@ implements NamedModelNode {
 
 	public String name() {
 		return ((ComponentDeclaration)ast).name;
+	}
+
+	public MethodModel getMethod(String name) {
+		return methods.get(name);
 	}
 	
 }

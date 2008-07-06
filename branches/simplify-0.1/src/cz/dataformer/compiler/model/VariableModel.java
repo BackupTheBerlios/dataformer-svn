@@ -2,8 +2,7 @@ package cz.dataformer.compiler.model;
 
 import cz.dataformer.NamedDataFormerNode;
 
-public class VariableModel extends ModelNode 
-implements NamedModelNode {
+public class VariableModel extends ModelNode implements NamedModelNode {
 
 	protected TypeModel type;
 	

@@ -8,6 +8,7 @@ import cz.dataformer.ast.ImportDeclaration;
 import cz.dataformer.ast.NodeVisitorImpl;
 import cz.dataformer.ast.Transformation;
 import cz.dataformer.ast.body.MethodDeclaration;
+import cz.dataformer.ast.body.Parameter;
 import cz.dataformer.ast.body.Port;
 import cz.dataformer.ast.record.DelimitedFieldDeclaration;
 import cz.dataformer.ast.record.FieldDeclaration;
@@ -15,6 +16,7 @@ import cz.dataformer.ast.record.FixedFieldDeclaration;
 import cz.dataformer.ast.record.RecordDeclaration;
 import cz.dataformer.ast.type.IOTypeParameter;
 import cz.dataformer.ast.type.PrimitiveType;
+import cz.dataformer.ast.type.Type;
 import cz.dataformer.compiler.CompilerEnvironment;
 import cz.dataformer.compiler.ProblemReporter;
 import cz.dataformer.compiler.XformEntry;
@@ -190,8 +192,23 @@ public class ModelBuilder extends NodeVisitorImpl {
 	
 	
 	@Override
-	public void visit(MethodDeclaration n) {
+	public void visit(MethodDeclaration ast) {
+		ComponentModel component = (ComponentModel)this.owner;
 		
+		MethodModel meth = new MethodModel(ast,component);
+		MethodModel dup = component.getMethod(ast.name);
+		if (meth.equals(dup)) {
+			pr.duplicateDeclaration("Duplicate method declaration", ast);
+			return;
+		}
+		
+		for (Parameter p : ast.parameters) {
+			if (meth.getVariable(p.id) != null) {
+				pr.duplicateDeclaration("Duplicate formal parameter declaration", p);
+			}
+			
+			// HERE how to handle types?
+		}
 	}
 
 	private void markTopologicRoot(ComponentModel comp) {

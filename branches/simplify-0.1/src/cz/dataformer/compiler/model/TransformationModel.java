@@ -34,7 +34,7 @@ public class TransformationModel extends ModelNode implements NamedModelNode {
 	}
 	
 	public void addComponent(ComponentModel component) {
-		
+		components.put(component.name(), component);
 	}
 	
 	public void setPackage(PackageModel pkg) {
@@ -58,7 +58,7 @@ public class TransformationModel extends ModelNode implements NamedModelNode {
 	}
 	
 	public void addRecord(RecordModel rec) {
-		
+		records.put(rec.name(), rec);
 	}
 
 	public RecordModel getRecord(String name) {
