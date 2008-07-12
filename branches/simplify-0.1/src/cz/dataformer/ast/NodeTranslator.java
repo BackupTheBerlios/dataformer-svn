@@ -50,7 +50,7 @@ import cz.dataformer.ast.statement.SwitchStatement;
 import cz.dataformer.ast.statement.ThrowStatement;
 import cz.dataformer.ast.statement.TryStatement;
 import cz.dataformer.ast.statement.WhileStatement;
-import cz.dataformer.ast.type.ClassOrInterfaceType;
+import cz.dataformer.ast.type.DataRecordType;
 import cz.dataformer.ast.type.IOTypeParameter;
 import cz.dataformer.ast.type.PrimitiveType;
 import cz.dataformer.ast.type.ReferenceType;
@@ -149,7 +149,7 @@ public abstract class NodeTranslator implements NodeVisitor {
 	public void visit(Parameter n) {
 		n.modifiers = translateModifiers(n.modifiers);
 		n.type = translate(n.type);
-		n.id = translateName(n.id);
+		n.name = translateName(n.name);
 
 		this.transResult = n;
 	}
@@ -168,7 +168,7 @@ public abstract class NodeTranslator implements NodeVisitor {
 		this.transResult = n;
 	}
 
-	public void visit(ClassOrInterfaceType n) {
+	public void visit(DataRecordType n) {
 		n.name = translateName(n.name);
 		// we won't visit n.scope, as it would lead us to some other branch
 		

@@ -49,7 +49,7 @@ import cz.dataformer.ast.statement.SwitchStatement;
 import cz.dataformer.ast.statement.ThrowStatement;
 import cz.dataformer.ast.statement.TryStatement;
 import cz.dataformer.ast.statement.WhileStatement;
-import cz.dataformer.ast.type.ClassOrInterfaceType;
+import cz.dataformer.ast.type.DataRecordType;
 import cz.dataformer.ast.type.IOTypeParameter;
 import cz.dataformer.ast.type.PrimitiveType;
 import cz.dataformer.ast.type.ReferenceType;
@@ -99,7 +99,7 @@ public interface NodeVisitor {
 
     //- Type ----------------------------------------------
 
-    public void visit(ClassOrInterfaceType n);
+    public void visit(DataRecordType n);
 
     public void visit(IOTypeParameter n);
     

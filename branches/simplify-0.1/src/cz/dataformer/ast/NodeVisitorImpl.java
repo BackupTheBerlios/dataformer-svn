@@ -48,12 +48,11 @@ import cz.dataformer.ast.statement.SwitchStatement;
 import cz.dataformer.ast.statement.ThrowStatement;
 import cz.dataformer.ast.statement.TryStatement;
 import cz.dataformer.ast.statement.WhileStatement;
-import cz.dataformer.ast.type.ClassOrInterfaceType;
+import cz.dataformer.ast.type.DataRecordType;
 import cz.dataformer.ast.type.IOTypeParameter;
 import cz.dataformer.ast.type.PrimitiveType;
 import cz.dataformer.ast.type.ReferenceType;
 import cz.dataformer.ast.type.VoidType;
-import cz.dataformer.compiler.ASTAnnotator;
 
 /**
  * No-op dummy implementation of NodeVisitor interface.
@@ -139,7 +138,7 @@ public class NodeVisitorImpl implements NodeVisitor {
 		visitNode(n.init);
 	}
 
-	public void visit(ClassOrInterfaceType n) {
+	public void visit(DataRecordType n) {
 		// we won't visit n.scope, as it would lead us to some other branch
 	}
 
