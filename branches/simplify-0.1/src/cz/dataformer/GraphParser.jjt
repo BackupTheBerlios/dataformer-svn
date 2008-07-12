@@ -380,7 +380,7 @@ List ComponentBodyDeclaration() :
 	 ( 
 		member = Port(modifiers) { ret = add(ret,member); }
 		| 
-		 LOOKAHEAD( JavaType() <IDENTIFIER> ( "[" "]" )* ( "," | "=" | ";" ) )
+		 LOOKAHEAD( CompositeType() <IDENTIFIER> ( "[" "]" )* ( "," | "=" | ";" ) )
 	     fields = ComponentFieldDeclaration(modifiers) { ret = add(ret,fields); }
 		|
 		 LOOKAHEAD (<IDENTIFIER> "(" )
@@ -534,7 +534,7 @@ List ComponentFieldDeclaration(Modifiers modifiers):
 }
 {
   // Modifiers are already matched in the caller
-  type = JavaType() 
+  type = CompositeType() 
         val = VariableDeclarator() 
         { ret = add(ret, new ComponentFieldDeclaration(val.getLine(),val.getColumn(),modifiers,type,val) ); } 
   ( 
@@ -610,7 +610,7 @@ Type ReferenceType():
 	(
 	type = PrimitiveType() ( LOOKAHEAD(2) "[" "]" { arrayCount++; } )+
 	|
-	type = ClassOrInterfaceType() ( LOOKAHEAD(2) "[" "]" { arrayCount++; } )*
+	type = DataRecordType() ( LOOKAHEAD(2) "[" "]" { arrayCount++; } )*
 	)
 	{ 
 		// do not wrap the type into reference type if there is no array
@@ -622,19 +622,16 @@ Type ReferenceType():
 	}
 }
 
-ClassOrInterfaceType ClassOrInterfaceType():
+DataRecordType DataRecordType():
 {
-	ClassOrInterfaceType ret;
-	String name;
+	StringBuffer pfx = new StringBuffer();
 	int line;
 	int column;
 }
 {
-  <IDENTIFIER> {line=token.beginLine; column=token.beginColumn; name = token.image; } 
-  { ret = new ClassOrInterfaceType(line, column, null, name); }
-  ( LOOKAHEAD(2) "." <IDENTIFIER> { name = token.image; } 
-    { ret = new ClassOrInterfaceType(line, column, ret, name); } )*
-  { return ret; }
+  <IDENTIFIER> {line=token.beginLine; column=token.beginColumn; pfx.append(token.image); } 
+  ( LOOKAHEAD(2) "." <IDENTIFIER> { pfx.append(".").append(token.image); } )*
+  { return new DataRecordType(line,column,pfx.toString()); }
 }
 
 NameExpression Name():
@@ -677,7 +674,7 @@ ComponentType ComponentType() :
 }
 
 
-Type JavaType() : 
+Type CompositeType() : 
 {
 	Type ret;
 }
@@ -713,7 +710,7 @@ Parameter FormalParameter():
 	String name;
 }
 {
-  mods = Modifiers() type = JavaType() [ "..." { isVarArg = true; }] 
+  mods = Modifiers() type = CompositeType() [ "..." { isVarArg = true; }] 
   <IDENTIFIER> { line = token.beginLine; column = token.beginColumn; name = token.image; }
   { return new Parameter(line,column,mods,type,isVarArg,name); }
 }
@@ -753,7 +750,7 @@ MainBlock MainBlock() :
 	{ return new MainBlock(line,column,block); }
 }
 
-Type PrimitiveType():
+PrimitiveType PrimitiveType():
 {
 	PrimitiveType ret;
 }
@@ -786,7 +783,7 @@ Statement BlockStatement():
 }
 
 {
- LOOKAHEAD( Modifiers() JavaType() <IDENTIFIER> )
+ LOOKAHEAD( Modifiers() CompositeType() <IDENTIFIER> )
   expr = LocalVariableDeclaration() ";"
   { return new ExpressionStatement(expr.getLine(),expr.getColumn(),expr); }
 |
@@ -803,7 +800,7 @@ VariableDeclarationExpression LocalVariableDeclaration():
 }
 {
   modifiers = Modifiers() 
-  type = JavaType() 
+  type = CompositeType() 
   var = VariableDeclarator()
   { declarators = add(declarators,var); }
   ( "," var = VariableDeclarator() { add(declarators,var); })*
@@ -862,7 +859,7 @@ Expression ArrayAllocationExpression() :
 }
 {
 	  "new" {line=token.beginLine; column=token.beginColumn;} 
-	  ( type = PrimitiveType() | type = ClassOrInterfaceType() )
+	  ( type = PrimitiveType() | type = DataRecordType() )
 	   arr = ArrayDimsAndInits()
 	  { 
 	  	if (arr[0] instanceof Integer) {
@@ -1416,7 +1413,7 @@ List ForInit():
 }
 {
   (
-	  LOOKAHEAD( Modifiers() JavaType() <IDENTIFIER> )
+	  LOOKAHEAD( Modifiers() CompositeType() <IDENTIFIER> )
 	  expr = LocalVariableDeclaration() { ret = new LinkedList(); ret.add(expr); }
 	|
 	  ret = ExpressionList()
@@ -1688,7 +1685,7 @@ RecordDeclaration RecordDeclaration(Modifiers mods) : {
 
 FieldDeclaration FieldDeclaration() #void: 
 {
-	Type type = null;
+	PrimitiveType type = null;
 	String name = null;
 	int line=0;
 	int column = 0;
@@ -1697,7 +1694,7 @@ FieldDeclaration FieldDeclaration() #void:
 	String delimiter = null;
 } 
 {
-	type = JavaType()
+	type = PrimitiveType()
 	<IDENTIFIER> { line=token.beginLine; column=token.beginColumn; name=token.image; }
 	
 	(
