@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.EnumSet;
 
 import cz.dataformer.ast.Transformation;
+import cz.dataformer.compiler.model.TransformationModel;
 import cz.dataformer.compiler.symbol.SymbolFlags;
 import cz.dataformer.compiler.symbol.TransformationSymbol;
 
@@ -18,21 +19,27 @@ public class XformEntry {
 	/** Parsed AST tree root */
 	private Transformation ast;
 
-	/** Top-level entry for the transformation in symbol table */
-	private TransformationSymbol symbol;
+	/** Top-level entry for the transformation model */
+	private TransformationModel model;
 	
 	public XformEntry(String fqn, File resolvedPath, Transformation ast) {
 		this.fqn = fqn;
 		this.resolvedPath = resolvedPath;
 		this.ast = ast;
-		this.symbol = new TransformationSymbol(ast,EnumSet.noneOf(SymbolFlags.class));
 	}
 
 
 	public Transformation getAst() {
 		return ast;
 	}
-
+	
+	public void setModel(TransformationModel model) {
+		this.model = model;
+	}
+	
+	public TransformationModel getModel() {
+		return model;
+	}
 
 	public String getFqn() {
 		return fqn;
@@ -52,14 +59,6 @@ public class XformEntry {
 	 */
 	public boolean isInError() {
 		return ast == null;
-	}
-	
-	public void setSymbol(TransformationSymbol symbol) {
-		this.symbol = symbol;
-	}
-	
-	public TransformationSymbol getSymbol() {
-		return symbol;
 	}
 	
 }
