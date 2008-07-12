@@ -27,12 +27,18 @@ public class ModelBuilder extends NodeVisitorImpl {
 	
 	private static final ModelBuilder INSTANCE = new ModelBuilder();
 	private ProblemReporter pr = ProblemReporter.getInstance();
-	private List<ComponentModel> topoRoots = new LinkedList<ComponentModel>();
 	
 	
-	private XformEntry current;
-	private ModelNode owner;
-	private CompilerEnvironment env;
+	private static final class BuilderState {
+		private XformEntry entry;
+		private ModelNode owner;
+		public ModelNode prevOwner;
+	}
+		public CompilerEnvironment env;
+	
+	private final BuilderState state = new BuilderState();
+	
+	
 	// records and components with unresolved extends hierarchy
 	private List<ModelNode> pendingExtends = new LinkedList<ModelNode>();
 	
@@ -42,8 +48,8 @@ public class ModelBuilder extends NodeVisitorImpl {
 
 	
 	public void buildModel(XformEntry entry) {
-		current = entry;
-		current.getAst().accept(this);
+		setEntry(entry);
+		getEntry().getAst().accept(this);
 		
 		// buildExtends()
 	}
@@ -51,17 +57,27 @@ public class ModelBuilder extends NodeVisitorImpl {
 	
 	public void visit(Transformation ast) {
 		TransformationModel trans = new TransformationModel(ast);
+		getEntry().setModel(trans);
+		
 		
 		PackageModel pkg = new PackageModel(ast.packageName,trans);
 		trans.setPackage(pkg);
 
-		this.owner = trans;
+		pushOwner(trans);
 		
-		super.visit(ast);
+		visitNode(ast.imports);
+		visitNode(ast.records);
+		visitNode(ast.components);
+		visitNode(ast.variables);
+		visitNode(ast.graph);
+		
+		popOwner();
 	}
 
+
+
 	public void visit(ImportDeclaration ast) {
-		TransformationModel t = (TransformationModel)owner;
+		TransformationModel t = getOwner();
 		
 		if (t.getImport(ast.name) != null) {
 			pr.duplicateDeclaration("Duplicate import declaration",ast);
@@ -74,7 +90,7 @@ public class ModelBuilder extends NodeVisitorImpl {
 	}
 	
 	public void visit(RecordDeclaration ast) {
-		TransformationModel t = (TransformationModel)this.owner;
+		TransformationModel t = getOwner();
 		
 		if (t.getRecord(ast.name) != null) {
 			pr.duplicateDeclaration("Duplicate record declaration", ast);
@@ -87,11 +103,10 @@ public class ModelBuilder extends NodeVisitorImpl {
 		}
 		
 		RecordModel rec = new RecordModel(ast,t);
-		ModelNode prevOwner = this.owner;
 		
-		this.owner = rec;
+		pushOwner(rec);
 		super.visit(ast);
-		this.owner = prevOwner;
+		popOwner();
 		
 		if (rec.numFields() < 1) {
 			pr.recordHasNoFields(ast);
@@ -122,7 +137,7 @@ public class ModelBuilder extends NodeVisitorImpl {
 			return;
 		}
 		
-		RecordModel rec = (RecordModel)owner;
+		RecordModel rec = getOwner();
 		if (rec.getField(ast.name) != null) {
 			pr.duplicateDeclaration("Duplicate field declaration", ast);
 			return;
@@ -136,7 +151,7 @@ public class ModelBuilder extends NodeVisitorImpl {
 	
 
 	public void visit(ComponentDeclaration ast) {
-		TransformationModel t = (TransformationModel)this.owner;
+		TransformationModel t = getOwner();
 		if (t.getComponent(ast.name) != null) {
 			pr.duplicateDeclaration("Duplicate component declaration", ast);
 			return;
@@ -164,11 +179,9 @@ public class ModelBuilder extends NodeVisitorImpl {
 			pendingExtends.add(comp); 
 		}
 	
-		TransformationModel prevOwner = t;
-
-		this.owner = comp;
+		pushOwner(comp);
 		super.visit(ast);
-		this.owner = prevOwner;
+		popOwner();
 		
 		if (comp.numInputPorts() == 0 ) {
 			if (comp.numOutputPorts() == 0) {
@@ -182,7 +195,7 @@ public class ModelBuilder extends NodeVisitorImpl {
 	}
 	
 	public void visit(Port ast) {
-		ComponentModel component = (ComponentModel)this.owner;
+		ComponentModel component = getOwner();
 		// check if type parameter referenced by port is among parameters declared by component
 		IOParamModel io = component.getIOParam(ast.ioType);
 		if (io== null) {
@@ -198,7 +211,7 @@ public class ModelBuilder extends NodeVisitorImpl {
 	
 	@Override
 	public void visit(MethodDeclaration ast) {
-		ComponentModel component = (ComponentModel)this.owner;
+		ComponentModel component = getOwner();
 		
 		MethodModel meth = new MethodModel(ast,component);
 		MethodModel dup = component.getMethod(ast.name);
@@ -232,9 +245,56 @@ public class ModelBuilder extends NodeVisitorImpl {
 	}
 
 	private void markTopologicRoot(ComponentModel comp) {
-		topoRoots.add(comp);
+		getEntry().getModel().addTopologicRoot(comp);
 	}
 
+
+	public void setEntry(XformEntry current) {
+		state.entry = current;
+	}
+
+
+	public XformEntry getEntry() {
+		return state.entry;
+	}
+
+	/**
+	 * Changes the {@link #owner} while storing it in {@link #prevOwner}
+	 * for use in {@link #popOwner()}
+	 * 
+	 * @param newOwner
+	 * @return original value of {@link #owner}
+	 */
+	private ModelNode pushOwner(ModelNode newOwner) {
+		state.prevOwner = getOwner();
+		state.owner = newOwner;
+		
+		return state.prevOwner;
+	}
+
+	/**
+	 * Sets the {@link #owner} with the value of {@link #prevOwner}
+	 * 
+	 * @return original value of {@link #owner} 
+	 */
+	private ModelNode popOwner() {
+		ModelNode ret = state.owner;
+		state.owner = state.prevOwner;
+		
+		return ret;
+	}
+
+
+	public void setOwner(ModelNode owner) {
+		state.owner = owner;
+	}
+
+
+	public <T extends ModelNode>  T getOwner() {
+		return (T) state.owner;
+	}
+
+	
 	/* Additional syntactic checks */
 	// isArrayInitializerUsedWithArrayVariable - java?
 	// arrayInitializerHasCorrectNumberOfFields - java?

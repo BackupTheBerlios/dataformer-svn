@@ -2,6 +2,7 @@ package cz.dataformer.compiler.model;
 
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import cz.dataformer.ast.Transformation;
@@ -14,6 +15,8 @@ public class TransformationModel extends ModelNode implements NamedModelNode {
 	private Map<String,TransformationModel> depends = new HashMap<String,TransformationModel>();
 	private Map<String,ComponentModel> components = new HashMap<String,ComponentModel>();
 	private Map<String,RecordModel> records = new HashMap<String,RecordModel>();
+	
+	private List<ComponentModel> topoRoots = new LinkedList<ComponentModel>();
 	
 	
 	public TransformationModel(Transformation ast) {
@@ -67,6 +70,10 @@ public class TransformationModel extends ModelNode implements NamedModelNode {
 
 	public ComponentModel getComponent(String name) {
 		return components.get(name);
+	}
+
+	public void addTopologicRoot(ComponentModel comp) {
+		topoRoots.add(comp);
 	}
 	
 }
