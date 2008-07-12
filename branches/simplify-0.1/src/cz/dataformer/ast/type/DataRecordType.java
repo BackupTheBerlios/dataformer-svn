@@ -7,17 +7,15 @@ import cz.dataformer.ast.NodeVisitor;
 
 
 /**
- * Represents classes and interfaces declaration
+ * Represents data record or a reference to IO type parameter 
  * @author mtomcany
  */
-public final class ClassOrInterfaceType extends Type {
+public final class DataRecordType extends Type {
 
-    public ClassOrInterfaceType scope;
     public String name;
     
-    public ClassOrInterfaceType(int line, int column, ClassOrInterfaceType scope, String name) {
+    public DataRecordType(int line, int column, String name) {
         super(line, column);
-        this.scope = scope;
         this.name = name;
     }
     
