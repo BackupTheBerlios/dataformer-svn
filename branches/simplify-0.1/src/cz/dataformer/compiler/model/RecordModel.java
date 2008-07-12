@@ -6,13 +6,13 @@ import cz.dataformer.ast.record.RecordDeclaration;
 
 public class RecordModel extends ModelNode implements NamedModelNode {
 
-	private HashMap<String,FieldModel> fields = new HashMap<String,FieldModel>();
+	private HashMap<String,VariableModel> fields = new HashMap<String,VariableModel>();
 	
 	public RecordModel(RecordDeclaration ast, TransformationModel owner) {
 		super(ast,owner);
 	}
 	
-	public void addField(FieldModel field) {
+	public void addField(VariableModel field) {
 		fields.put(field.name(),field);
 	}
 	
@@ -20,7 +20,7 @@ public class RecordModel extends ModelNode implements NamedModelNode {
 		return fields.size();
 	}
 
-	public FieldModel getField(String name) {
+	public VariableModel getField(String name) {
 		return fields.get(name);
 	}
 

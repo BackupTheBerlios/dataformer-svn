@@ -9,9 +9,18 @@ import cz.dataformer.ast.body.MethodDeclaration;
 
 public class MethodModel extends ModelNode implements NamedModelNode {
 
+	// formal parameters 
 	private List<VariableModel> formalParams;
+	
+	// return type
 	private TypeModel returnType;
+	
+	// local variables + formal parameters
 	private HashMap<String,VariableModel> localVariables;
+	
+	// variables + parameters referencing an IO param
+	private List<VariableModel> varsToBind;
+	
 	
 	public MethodModel(MethodDeclaration ast, ComponentModel owner) {
 		super(ast, owner);
@@ -61,7 +70,6 @@ public class MethodModel extends ModelNode implements NamedModelNode {
 	public TypeModel getReturnType() {
 		return returnType; 
 	}
-	
 	
 	@Override
 	public boolean equals(Object obj) {

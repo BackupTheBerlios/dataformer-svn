@@ -14,11 +14,12 @@ import cz.dataformer.ast.record.DelimitedFieldDeclaration;
 import cz.dataformer.ast.record.FieldDeclaration;
 import cz.dataformer.ast.record.FixedFieldDeclaration;
 import cz.dataformer.ast.record.RecordDeclaration;
+import cz.dataformer.ast.type.DataRecordType;
 import cz.dataformer.ast.type.IOTypeParameter;
 import cz.dataformer.ast.type.PrimitiveType;
-import cz.dataformer.ast.type.Type;
 import cz.dataformer.compiler.CompilerEnvironment;
 import cz.dataformer.compiler.ProblemReporter;
+import cz.dataformer.compiler.Utilities;
 import cz.dataformer.compiler.XformEntry;
 
 
@@ -127,11 +128,13 @@ public class ModelBuilder extends NodeVisitorImpl {
 			return;
 		}
 		
-		FieldModel field = new FieldModel(ast,rec);
+		VariableModel field = new VariableModel(ast,rec,Utilities.typeEnumToModel(ast.type));
 		rec.addField(field);
 		
 	}
 	
+	
+
 	public void visit(ComponentDeclaration ast) {
 		TransformationModel t = (TransformationModel)this.owner;
 		if (t.getComponent(ast.name) != null) {
@@ -148,7 +151,7 @@ public class ModelBuilder extends NodeVisitorImpl {
 		
 		
 		for (IOTypeParameter p : ast.ioParams) {
-			TypeParamModel model = new TypeParamModel(p,comp);
+			IOParamModel model = new IOParamModel(p,comp);
 			if (comp.getIOParam(p.name) != null) {
 				pr.duplicateDeclaration("Duplicate IO type parameter declaration", p);
 			} else {
@@ -181,12 +184,14 @@ public class ModelBuilder extends NodeVisitorImpl {
 	public void visit(Port ast) {
 		ComponentModel component = (ComponentModel)this.owner;
 		// check if type parameter referenced by port is among parameters declared by component
-		if (component.getIOParam(ast.ioType) == null) {
+		IOParamModel io = component.getIOParam(ast.ioType);
+		if (io== null) {
 			pr.typeDoesNotMatchIOParams(ast);
 			return;
 		}
 		
-		PortModel port = new PortModel(ast,component);
+		
+		PortModel port = new PortModel(ast,component, new IORefModel(ast.ioType));
 		component.addPort(port);
 	}
 	
@@ -203,11 +208,26 @@ public class ModelBuilder extends NodeVisitorImpl {
 		}
 		
 		for (Parameter p : ast.parameters) {
-			if (meth.getVariable(p.id) != null) {
+			if (meth.getVariable(p.name) != null) {
 				pr.duplicateDeclaration("Duplicate formal parameter declaration", p);
 			}
-			
-			// HERE how to handle types?
+
+			VariableModel var = null;
+			if (p.type instanceof PrimitiveType) {
+				var = new VariableModel(p,meth, Utilities.typeEnumToModel((PrimitiveType)p.type));
+			} else if (p.type instanceof DataRecordType) {
+				// this can be either reference to an IO param or a real DataRecordType
+				DataRecordType dt = (DataRecordType)p.type;
+				if (component.getIOParam(dt.name) != null) {
+					// reference to an IO type
+					var = new VariableModel(p,meth,new IORefModel(dt.name));
+				} else {
+					// reference to a data record
+					var = new VariableModel(p,meth,new DataRecordTypeModel(dt.name));
+				}
+			} else {
+				// TODO: array!
+			}
 		}
 	}
 
@@ -215,7 +235,6 @@ public class ModelBuilder extends NodeVisitorImpl {
 		topoRoots.add(comp);
 	}
 
-	
 	/* Additional syntactic checks */
 	// isArrayInitializerUsedWithArrayVariable - java?
 	// arrayInitializerHasCorrectNumberOfFields - java?

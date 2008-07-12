@@ -9,7 +9,7 @@ import cz.dataformer.ast.ComponentDeclaration;
 public class ComponentModel extends ModelNode 
 implements NamedModelNode {
 	
-	private List<TypeParamModel> ioParams = new LinkedList<TypeParamModel>();
+	private List<IOParamModel> ioParams = new LinkedList<IOParamModel>();
 	private List<PortModel> inputPorts = new LinkedList<PortModel>();
 	private List<PortModel> outputPorts = new LinkedList<PortModel>();
 	private HashMap<String,MethodModel> methods = new HashMap<String,MethodModel>();
@@ -26,12 +26,12 @@ implements NamedModelNode {
 		}
 	}
 
-	public void addIOParam(TypeParamModel ioParam) {
+	public void addIOParam(IOParamModel ioParam) {
 		this.ioParams.add(ioParam);
 	}
 	
-	public TypeParamModel getIOParam(String name) {
-		for (TypeParamModel model : ioParams) {
+	public IOParamModel getIOParam(String name) {
+		for (IOParamModel model : ioParams) {
 			if (model.name().equals(name)) {
 				return model;
 			}
@@ -40,7 +40,7 @@ implements NamedModelNode {
 		return null;
 	}
 	
-	public List<TypeParamModel> getIOParams() {
+	public List<IOParamModel> getIOParams() {
 		return ioParams;
 	}
 

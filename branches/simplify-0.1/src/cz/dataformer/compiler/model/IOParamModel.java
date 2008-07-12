@@ -2,9 +2,9 @@ package cz.dataformer.compiler.model;
 
 import cz.dataformer.ast.type.IOTypeParameter;
 
-public class TypeParamModel extends TypeModel implements NamedModelNode {
+public class IOParamModel extends ModelNode implements NamedModelNode {
 
-	public TypeParamModel(IOTypeParameter ast, ComponentModel owner) {
+	public IOParamModel(IOTypeParameter ast, ComponentModel owner) {
 		super(ast, owner);
 	}
 	
@@ -14,11 +14,11 @@ public class TypeParamModel extends TypeModel implements NamedModelNode {
 	
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null || obj instanceof TypeParamModel == false) {
+		if (obj == null || obj instanceof IOParamModel == false) {
 			return false;
 		}
 		
-		TypeParamModel other = (TypeParamModel)obj;
+		IOParamModel other = (IOParamModel)obj;
 		return name().equals(other.name());
 	}
 
