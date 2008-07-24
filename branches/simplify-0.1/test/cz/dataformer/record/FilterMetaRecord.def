@@ -1,0 +1,7 @@
+package cz.dataformer.record.FilterMetaRecord;
+
+// record structure expected by the filter specification below
+ 	public record FilterMetaRecord {
+ 		int firstField delimiter(",");
+ 		boolean thirdField delimiter("\n");
+ 	}

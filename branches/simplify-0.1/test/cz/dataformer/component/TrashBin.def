@@ -1,0 +1,12 @@
+package cz.dataformer.component;
+
+public abstract component TrashBin<T> {
+	public in port T input;
+		
+		main {
+			T rec;
+			while (rec << input) {
+				// do nothing				
+			}
+		}
+	}

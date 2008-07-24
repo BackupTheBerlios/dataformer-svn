@@ -1,0 +1,20 @@
+package cz.dataformer.component;
+
+public component Filter<I> {
+		out port I validOutput;
+		in port I input;
+		optional out port I invalidOutput;
+
+		abstract boolean testCondition(I inputRecord);
+		
+		main {
+			I rec;
+			while (rec << input) {
+				if (testCondition(rec)) {
+					rec >> validOutput;
+				} else {
+					rec >> invalidOutput;
+				}
+			}
+		}
+}

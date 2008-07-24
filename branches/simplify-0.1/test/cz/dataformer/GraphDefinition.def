@@ -1,0 +1,20 @@
+package cz.dataformer;
+
+public transformation MyTransformation {
+
+	
+	// component as transformation field
+	private Generator<InputRecord> reader = new Generator<InputRecord>();
+		
+	// filter inline implementation
+	private Filter<InputRecord> filter = new Filter<InputRecord>(100);
+	
+	// trash bin implementation
+	private TrashBin<InputRecord> trashBin = new TrashBin<InputRecord>();
+	
+	
+	graph {
+		connect reader.output -> filter.input;
+		connect filter.validOutput -> trashBin.input;
+	}
+}

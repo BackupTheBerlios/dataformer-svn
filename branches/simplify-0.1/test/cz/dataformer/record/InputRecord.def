@@ -1,0 +1,9 @@
+package cz.dataformer.record;
+
+import cz.dataformer.record.FilterMetaRecord;
+
+public record InputRecord extends FilterMetaRecord {
+	int firstField delimiter("|");
+	int secondField length(20);
+	boolean thirdField delimiter("\n");
+}

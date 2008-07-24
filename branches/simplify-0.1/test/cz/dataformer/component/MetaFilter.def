@@ -1,0 +1,17 @@
+package cz.dataformer.component;
+
+import cz.dataformer.record.*;
+import cz.dataformer.component.Filter;
+
+// filter component "data interface" definition ("specification" for a data type)
+	public component MetaFilter<I extends FilterMetaRecord> extends Filter<I> {
+		private int filterThreshold;
+
+		public MetaFilter(int threshold) {
+			filterThreshold = threshold;
+		}
+		
+		boolean testCondition(I inputRecord) {
+			return inputRecord.code > filterThreshold && inputRecord.flag;
+		}
+	}

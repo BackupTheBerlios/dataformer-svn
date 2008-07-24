@@ -1,0 +1,17 @@
+package cz.dataformer.component;
+
+import cz.dataformer.component Generator;
+import cz.dataformer.record.InputRecord;
+
+// generator "implementation" for a data type
+	public component InputRecordGenerator<InputRecord> extends Generator<T> {
+		private InputRecord generateMessage() {
+			InputRecord ret;
+			
+			ret.firstField=1;
+			ret.secondField=2;
+			ret.thirdField=true;
+			
+			return ret;
+		}
+	}
