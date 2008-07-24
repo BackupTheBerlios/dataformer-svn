@@ -6,6 +6,7 @@ package cz.dataformer.ast.expression;
 import java.util.List;
 
 import cz.dataformer.ast.NodeVisitor;
+import cz.dataformer.compiler.GraphCompilerException;
 
 /**
  * @author mtomcany
@@ -24,7 +25,7 @@ public final class MethodCallExpression extends Expression {
     }
 
     @Override
-    public void accept(NodeVisitor v) {
+    public void accept(NodeVisitor v) throws GraphCompilerException {
     	v.visit(this);
     }
 

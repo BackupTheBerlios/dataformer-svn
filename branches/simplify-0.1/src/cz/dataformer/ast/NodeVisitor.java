@@ -24,7 +24,6 @@ import cz.dataformer.ast.expression.LongLiteralExpression;
 import cz.dataformer.ast.expression.LongLiteralMinValueExpression;
 import cz.dataformer.ast.expression.MethodCallExpression;
 import cz.dataformer.ast.expression.NameExpression;
-import cz.dataformer.ast.expression.QualifiedNameExpression;
 import cz.dataformer.ast.expression.StreamOperationExpression;
 import cz.dataformer.ast.expression.StringLiteralExpression;
 import cz.dataformer.ast.expression.UnaryExpression;
@@ -54,140 +53,139 @@ import cz.dataformer.ast.type.IOTypeParameter;
 import cz.dataformer.ast.type.PrimitiveType;
 import cz.dataformer.ast.type.ReferenceType;
 import cz.dataformer.ast.type.VoidType;
+import cz.dataformer.compiler.GraphCompilerException;
 
 /**
  * @author mtomcany
  */
 public interface NodeVisitor {
 
-    public void visit(DataFormerNode n);
+    public void visit(DataFormerNode n) throws GraphCompilerException;
 
     //- Compilation Unit ----------------------------------
 
-    public void visit(ComponentDeclaration n);
+    public void visit(ComponentDeclaration n) throws GraphCompilerException;
 
-    public void visit(TransformationFieldDeclaration c);
+    public void visit(TransformationFieldDeclaration c) throws GraphCompilerException;
     
-    public void visit(ImportDeclaration n);
+    public void visit(ImportDeclaration n) throws GraphCompilerException;
 
-    public void visit(Transformation n);
+    public void visit(Transformation n) throws GraphCompilerException;
 
 
-//    public void visit(TypeParameter n);
+//    public void visit(TypeParameter n) throws GraphCompilerException;
 
     //- Record --------------------------------------------
     
-    public void visit(RecordDeclaration r);
+    public void visit(RecordDeclaration r) throws GraphCompilerException;
     
-    public void visit(FixedFieldDeclaration f);
+    public void visit(FixedFieldDeclaration f) throws GraphCompilerException;
     
-    public void visit(DelimitedFieldDeclaration f);
+    public void visit(DelimitedFieldDeclaration f) throws GraphCompilerException;
     
     //- Body ----------------------------------------------
 
-    public void visit(ComponentFieldDeclaration n);
+    public void visit(ComponentFieldDeclaration n) throws GraphCompilerException;
 
-    public void visit(MainBlock n);
+    public void visit(MainBlock n) throws GraphCompilerException;
 
-    public void visit(MethodDeclaration n);
+    public void visit(MethodDeclaration n) throws GraphCompilerException;
 
-    public void visit(Parameter n);
+    public void visit(Parameter n) throws GraphCompilerException;
 
-    public void visit(Port n);
+    public void visit(Port n) throws GraphCompilerException;
 
-    public void visit(VariableDeclarator n);
+    public void visit(VariableDeclarator n) throws GraphCompilerException;
 
     //- Type ----------------------------------------------
 
-    public void visit(DataRecordType n);
+    public void visit(DataRecordType n) throws GraphCompilerException;
 
-    public void visit(IOTypeParameter n);
+    public void visit(IOTypeParameter n) throws GraphCompilerException;
     
-    public void visit(PrimitiveType n);
+    public void visit(PrimitiveType n) throws GraphCompilerException;
 
-    public void visit(ReferenceType n);
+    public void visit(ReferenceType n) throws GraphCompilerException;
 
-    public void visit(VoidType n);
+    public void visit(VoidType n) throws GraphCompilerException;
 
     //- Expression ----------------------------------------
 
-    public void visit(ArrayAccessExpression n);
+    public void visit(ArrayAccessExpression n) throws GraphCompilerException;
 
-    public void visit(ArrayAllocationExpression n);
+    public void visit(ArrayAllocationExpression n) throws GraphCompilerException;
 
-    public void visit(ArrayInitializerExpression n);
+    public void visit(ArrayInitializerExpression n) throws GraphCompilerException;
 
-    public void visit(AssignmentExpression n);
+    public void visit(AssignmentExpression n) throws GraphCompilerException;
 
-    public void visit(BinaryExpression n);
+    public void visit(BinaryExpression n) throws GraphCompilerException;
 
-    public void visit(BooleanLiteralExpression n);
+    public void visit(BooleanLiteralExpression n) throws GraphCompilerException;
 
-    public void visit(ConditionalExpression n);
+    public void visit(ConditionalExpression n) throws GraphCompilerException;
 
-    public void visit(FieldAccessExpression n);
+    public void visit(FieldAccessExpression n) throws GraphCompilerException;
 
-    public void visit(IntegerLiteralExpression n);
+    public void visit(IntegerLiteralExpression n) throws GraphCompilerException;
 
-    public void visit(IntegerLiteralMinValueExpression n);
+    public void visit(IntegerLiteralMinValueExpression n) throws GraphCompilerException;
 
-    public void visit(LongLiteralExpression n);
+    public void visit(LongLiteralExpression n) throws GraphCompilerException;
 
-    public void visit(LongLiteralMinValueExpression n);
+    public void visit(LongLiteralMinValueExpression n) throws GraphCompilerException;
     
-    public void visit(MethodCallExpression n);
+    public void visit(MethodCallExpression n) throws GraphCompilerException;
 
-    public void visit(NameExpression n);
+    public void visit(NameExpression n) throws GraphCompilerException;
 
-    public void visit(QualifiedNameExpression n);
+    public void visit(StreamOperationExpression n) throws GraphCompilerException;
+
+    public void visit(StringLiteralExpression n) throws GraphCompilerException;
+
+    public void visit(UnaryExpression n) throws GraphCompilerException;
     
-    public void visit(StreamOperationExpression n);
-
-    public void visit(StringLiteralExpression n);
-
-    public void visit(UnaryExpression n);
-    
-    public void visit(VariableDeclarationExpression n);
-//TODO    public void visit(CharLiteralExpr n);
-//TODO    public void visit(DoubleLiteralExpr n);
-//TODO    public void visit(NullLiteralExpr n);
+    public void visit(VariableDeclarationExpression n) throws GraphCompilerException;
+//TODO    public void visit(CharLiteralExpr n) throws GraphCompilerException;
+//TODO    public void visit(DoubleLiteralExpr n) throws GraphCompilerException;
+//TODO    public void visit(NullLiteralExpr n) throws GraphCompilerException;
 
     //- Statements ----------------------------------------
 
-    public void visit(BlockStatement n);
+    public void visit(BlockStatement n) throws GraphCompilerException;
 
-    public void visit(BreakStatement n);
+    public void visit(BreakStatement n) throws GraphCompilerException;
 
-    public void visit(CatchClause n);
+    public void visit(CatchClause n) throws GraphCompilerException;
 
-    public void visit(ConnectStatement n);
+    public void visit(ConnectStatement n) throws GraphCompilerException;
     
-    public void visit(ContinueStatement n);
+    public void visit(ContinueStatement n) throws GraphCompilerException;
     
-    public void visit(DoStatement n);
+    public void visit(DoStatement n) throws GraphCompilerException;
 
-    public void visit(EmptyStatement n);
+    public void visit(EmptyStatement n) throws GraphCompilerException;
 
-    public void visit(ExpressionStatement n);
+    public void visit(ExpressionStatement n) throws GraphCompilerException;
 
-    public void visit(ForeachStatement n);
+    public void visit(ForeachStatement n) throws GraphCompilerException;
 
-    public void visit(ForStatement n);
+    public void visit(ForStatement n) throws GraphCompilerException;
     
-    public void visit(IfStatement n);
+    public void visit(IfStatement n) throws GraphCompilerException;
     
-    public void visit(ReturnStatement n);
+    public void visit(ReturnStatement n) throws GraphCompilerException;
 
-    public void visit(SwitchEntryStatement n);
+    public void visit(SwitchEntryStatement n) throws GraphCompilerException;
     
-    public void visit(SwitchStatement n);
+    public void visit(SwitchStatement n) throws GraphCompilerException;
 
-    public void visit(ThrowStatement n);
+    public void visit(ThrowStatement n) throws GraphCompilerException;
     
-    public void visit(TryStatement n);
+    public void visit(TryStatement n) throws GraphCompilerException;
 
-    public void visit(WhileStatement n);
+    public void visit(WhileStatement n) throws GraphCompilerException;
 
-    // TODO   public void visit(LabeledStatement n);
-    // TODO   public void visit(SynchronizedStatement n);
+    // TODO   public void visit(LabeledStatement n) throws GraphCompilerException;
+    // TODO   public void visit(SynchronizedStatement n) throws GraphCompilerException;
 }

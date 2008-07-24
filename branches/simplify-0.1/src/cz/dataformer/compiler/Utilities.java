@@ -1,7 +1,5 @@
 package cz.dataformer.compiler;
 
-import cz.dataformer.ast.expression.NameExpression;
-import cz.dataformer.ast.expression.QualifiedNameExpression;
 import cz.dataformer.ast.type.PrimitiveType;
 import cz.dataformer.compiler.model.PrimitiveTypeModel;
 
@@ -11,18 +9,6 @@ public final class Utilities {
 		// not available
 	}
 
-	public static String nameToString(NameExpression nameExp) {
-		StringBuilder buf = new StringBuilder();
-		while (nameExp instanceof QualifiedNameExpression) {
-			buf.append(nameExp.name).append(".");
-			nameExp = ((QualifiedNameExpression)nameExp).qualifier;
-		}
-		// this handles the last non-qualified name expression
-		buf.append(nameExp.name);
-		
-		return buf.toString();
-	}
-	
 	public static PrimitiveTypeModel typeEnumToModel(PrimitiveType ast) {
 		switch (ast.type) {
 		case Int:
@@ -33,8 +19,5 @@ public final class Utilities {
 
 		assert false : "Unreachable code";
 		return null;
-		
 	}
-
-
 }

@@ -6,6 +6,7 @@ package cz.dataformer.ast.statement;
 import cz.dataformer.DataFormerNode;
 import cz.dataformer.ast.NodeVisitor;
 import cz.dataformer.ast.body.Parameter;
+import cz.dataformer.compiler.GraphCompilerException;
 
 /**
  * @author mtomcany
@@ -23,7 +24,7 @@ public final class CatchClause extends DataFormerNode {
     }
 
 	@Override
-	public void accept(NodeVisitor v) {
+	public void accept(NodeVisitor v) throws GraphCompilerException {
 		v.visit(this);
 	}
 

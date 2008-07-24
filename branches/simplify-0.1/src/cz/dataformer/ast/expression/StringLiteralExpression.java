@@ -4,6 +4,7 @@
 package cz.dataformer.ast.expression;
 
 import cz.dataformer.ast.NodeVisitor;
+import cz.dataformer.compiler.GraphCompilerException;
 
 
 /**
@@ -19,7 +20,7 @@ public class StringLiteralExpression extends LiteralExpression {
     }
 
     @Override
-    public void accept(NodeVisitor v) {
+    public void accept(NodeVisitor v) throws GraphCompilerException {
     	v.visit(this);
     }
     

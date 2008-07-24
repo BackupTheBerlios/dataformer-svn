@@ -17,12 +17,14 @@ public class SemanticCheck {
 	public void check(XformEntry entry) {
 		current = entry;
 		
-		ModelBuilder modelBuilder = ModelBuilder.getInstance();
-		modelBuilder.buildModel(current);
+		ModelBuilder modelBuilder = new ModelBuilder(entry);
+		modelBuilder.buildModel();
 		
 //		TypeVerifier verifier = new TypeVerifier();
 //		verifier.verify(current);
 	}
+	
+	
  	
 	
 	

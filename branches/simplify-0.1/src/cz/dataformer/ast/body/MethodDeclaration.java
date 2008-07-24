@@ -9,7 +9,7 @@ import cz.dataformer.ast.NodeVisitor;
 import cz.dataformer.ast.expression.NameExpression;
 import cz.dataformer.ast.statement.BlockStatement;
 import cz.dataformer.ast.type.Type;
-import cz.dataformer.compiler.symbol.MethodSymbol;
+import cz.dataformer.compiler.GraphCompilerException;
 
 /**
  * Method declaration
@@ -23,7 +23,6 @@ public class MethodDeclaration extends BodyDeclaration {
     public List<Parameter> parameters;
     public List<NameExpression> throws_;
     public BlockStatement block;
-    public MethodSymbol symbol;
     
     public MethodDeclaration(int line, int column, Modifiers modifiers, Type returnType, String name, List<Parameter> parameters, List<NameExpression> throws_, BlockStatement block) {
         super(line, column, name);
@@ -35,7 +34,7 @@ public class MethodDeclaration extends BodyDeclaration {
     }
 
     @Override
-    public void accept(NodeVisitor v) {
+    public void accept(NodeVisitor v) throws GraphCompilerException {
     	v.visit(this);
     }
     

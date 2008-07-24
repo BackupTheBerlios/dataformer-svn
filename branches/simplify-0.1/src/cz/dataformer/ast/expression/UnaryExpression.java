@@ -5,6 +5,7 @@ package cz.dataformer.ast.expression;
 
 import cz.dataformer.ast.NodeVisitor;
 import cz.dataformer.ast.UnaryOperatorEnum;
+import cz.dataformer.compiler.GraphCompilerException;
 
 
 /**
@@ -23,7 +24,7 @@ public final class UnaryExpression extends Expression {
     }
 
     @Override
-    public void accept(NodeVisitor v) {
+    public void accept(NodeVisitor v) throws GraphCompilerException {
     	v.visit(this);
     }
 

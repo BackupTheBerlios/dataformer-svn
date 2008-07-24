@@ -16,7 +16,7 @@ public class ModelNode {
 		return owner;
 	}
 	
-	public DataFormerNode getAst() {
-		return ast;
+	 public <T extends DataFormerNode> T getAst() {
+		return (T)ast;
 	}
 }

@@ -5,7 +5,7 @@ package cz.dataformer.ast.body;
 
 import cz.dataformer.ast.NodeVisitor;
 import cz.dataformer.ast.type.Type;
-import cz.dataformer.compiler.symbol.VariableSymbol;
+import cz.dataformer.compiler.GraphCompilerException;
 
 /**
  * @author mtomcany
@@ -15,7 +15,6 @@ public final class ComponentFieldDeclaration extends BodyDeclaration {
     public Modifiers modifiers;
     public Type type;
     public VariableDeclarator variable;
-    public VariableSymbol symbol;
 
     public ComponentFieldDeclaration(int line, int column, Modifiers modifiers, Type type, VariableDeclarator variable) {
         super(line, column, variable.id);
@@ -25,7 +24,7 @@ public final class ComponentFieldDeclaration extends BodyDeclaration {
     }
 
 	@Override
-	public void accept(NodeVisitor v) {
+	public void accept(NodeVisitor v) throws GraphCompilerException {
 		v.visit(this);
 	}
 }

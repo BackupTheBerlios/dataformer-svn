@@ -1,64 +1,75 @@
 package cz.dataformer.compiler;
 
 import java.io.File;
-import java.util.EnumSet;
 
-import cz.dataformer.ast.Transformation;
-import cz.dataformer.compiler.model.TransformationModel;
-import cz.dataformer.compiler.symbol.SymbolFlags;
-import cz.dataformer.compiler.symbol.TransformationSymbol;
+import cz.dataformer.DataFormerNode;
+import cz.dataformer.ast.TopLevelASTNode;
+import cz.dataformer.compiler.model.TopLevelModel;
+import cz.dataformer.compiler.model.TopLevelModel.TopLevel;
 
 public class XformEntry {
 
-	/** Fully qualified name */
-	private String fqn;
-	
 	/** Resolved file for this transformation */
 	private File resolvedPath;
 	
 	/** Parsed AST tree root */
-	private Transformation ast;
+	private DataFormerNode ast;
 
-	/** Top-level entry for the transformation model */
-	private TransformationModel model;
+	/** Top-level entry for corresponding model */
+	private TopLevelModel model;
+
+	/** Flag if this is an erroneous entry due to errors in parsing or model */
+	private boolean inError;
+
+	/** Top level type of this entry */
+	private final TopLevel topLevel;
 	
-	public XformEntry(String fqn, File resolvedPath, Transformation ast) {
-		this.fqn = fqn;
+	public XformEntry(File resolvedPath, DataFormerNode ast, TopLevel topLevel) {
 		this.resolvedPath = resolvedPath;
 		this.ast = ast;
-	}
-
-
-	public Transformation getAst() {
-		return ast;
+		this.topLevel = topLevel;
+		inError = ast == null;
 	}
 	
-	public void setModel(TransformationModel model) {
+	@SuppressWarnings("unchecked")
+	public <T extends DataFormerNode> T getAst() {
+		return (T)ast;
+	}
+	
+	public void setModel(TopLevelModel model) {
 		this.model = model;
 	}
 	
-	public TransformationModel getModel() {
-		return model;
+	@SuppressWarnings("unchecked")
+	public <M extends TopLevelModel> M getModel() {
+		return (M)model;
 	}
-
-	public String getFqn() {
-		return fqn;
-	}
-
 
 	public File getResolvedPath() {
 		return resolvedPath;
 	}
 	
+	public String getFQDN() {
+		TopLevelASTNode ast = getAst();
+		return ast.pkg.name + "." + ast.name;
+	}
+	
+	public TopLevel getTopLevelKind() {
+		return topLevel;
+	}
 	
 	/**
 	 * Indication if this transformation entry represents and
-	 * errorneous entry (due to syntactic problems or missing file).
+	 * erroneous entry (due to syntactic problems or missing file).
 	 * 
 	 * @return true 	if in error
 	 */
 	public boolean isInError() {
-		return ast == null;
+		return inError;
+	}
+	
+	public void setInError() {
+		this.inError = true;
 	}
 	
 }

@@ -1,9 +1,10 @@
 package cz.dataformer;
 
 import cz.dataformer.ast.NodeVisitor;
+import cz.dataformer.compiler.GraphCompilerException;
 
 
-public abstract class DataFormerNode {
+public abstract class DataFormerNode  {
 
     public final int line;
     public final int column;
@@ -14,7 +15,7 @@ public abstract class DataFormerNode {
     }
     
     /** Visitor support method */
-    public abstract void accept(NodeVisitor v);
+    public abstract void accept(NodeVisitor v) throws GraphCompilerException;
     
     
     public int getLine() {

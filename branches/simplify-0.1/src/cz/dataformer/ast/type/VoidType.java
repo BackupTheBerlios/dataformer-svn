@@ -4,7 +4,7 @@
 package cz.dataformer.ast.type;
 
 import cz.dataformer.ast.NodeVisitor;
-import cz.dataformer.compiler.symbol.TypeSymbol;
+import cz.dataformer.compiler.GraphCompilerException;
 
 /**
  * Void type as returned from methods
@@ -18,7 +18,7 @@ public final class VoidType extends Type {
     }
     
     @Override
-    public void accept(NodeVisitor v) {
+    public void accept(NodeVisitor v) throws GraphCompilerException {
     	v.visit(this);
     }
 }

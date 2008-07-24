@@ -1,6 +1,7 @@
 package cz.dataformer;
 
 import cz.dataformer.ast.NodeVisitor;
+import cz.dataformer.compiler.GraphCompilerException;
 
 public abstract class NamedDataFormerNode extends DataFormerNode {
 
@@ -12,6 +13,6 @@ public abstract class NamedDataFormerNode extends DataFormerNode {
 	}
 
 	
-	public abstract void accept(NodeVisitor v);
+	public abstract void accept(NodeVisitor v) throws GraphCompilerException;
 
 }

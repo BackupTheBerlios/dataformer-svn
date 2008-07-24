@@ -2,6 +2,7 @@ package cz.dataformer.ast.body;
 
 import cz.dataformer.ast.NodeVisitor;
 import cz.dataformer.ast.statement.BlockStatement;
+import cz.dataformer.compiler.GraphCompilerException;
 
 /**
  * @author mtomcany
@@ -17,7 +18,7 @@ public class MainBlock extends BodyDeclaration {
 	}
 	
 	@Override
-	public void accept(NodeVisitor v) {
+	public void accept(NodeVisitor v) throws GraphCompilerException {
 		v.visit(this);
 	}
 

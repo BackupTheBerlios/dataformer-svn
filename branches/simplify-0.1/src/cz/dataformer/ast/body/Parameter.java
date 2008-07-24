@@ -6,7 +6,7 @@ package cz.dataformer.ast.body;
 import cz.dataformer.NamedDataFormerNode;
 import cz.dataformer.ast.NodeVisitor;
 import cz.dataformer.ast.type.Type;
-import cz.dataformer.compiler.symbol.VariableSymbol;
+import cz.dataformer.compiler.GraphCompilerException;
 
 /**
  * Method or catch-clause parameter
@@ -18,7 +18,6 @@ public final class Parameter extends NamedDataFormerNode {
     public Modifiers modifiers;
     public Type type;
     public boolean isVarArgs;
-    public VariableSymbol symbol;
     
     public Parameter(int line, int column, Modifiers modifiers, Type type, boolean isVarArgs, String id) {
         super(line, column, id);
@@ -28,7 +27,7 @@ public final class Parameter extends NamedDataFormerNode {
     }
 
     @Override
-    public void accept(NodeVisitor v) {
+    public void accept(NodeVisitor v) throws GraphCompilerException {
     	v.visit(this);
     }
 }

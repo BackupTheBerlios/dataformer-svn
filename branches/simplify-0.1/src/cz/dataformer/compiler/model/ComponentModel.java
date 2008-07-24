@@ -6,8 +6,7 @@ import java.util.List;
 
 import cz.dataformer.ast.ComponentDeclaration;
 
-public class ComponentModel extends ModelNode 
-implements NamedModelNode {
+public class ComponentModel extends TopLevelModel implements NamedModelNode {
 	
 	private List<IOParamModel> ioParams = new LinkedList<IOParamModel>();
 	private List<PortModel> inputPorts = new LinkedList<PortModel>();
@@ -16,6 +15,8 @@ implements NamedModelNode {
 
 	public ComponentModel(ComponentDeclaration ast, TransformationModel owner) {
 		super(ast, owner);
+		records = new HashMap<String, ImportModel>();
+		components = new HashMap<String, ImportModel>();
 	}
 	
 	public void addPort(PortModel port) {
@@ -60,4 +61,20 @@ implements NamedModelNode {
 		return methods.get(name);
 	}
 	
+	
+	@Override
+	public void addTransformationImport(ImportModel imp) {
+		throw new IllegalStateException("Component declaration can never import a transformation declaration");
+	}
+	
+
+	@Override
+	public TransformationModel getTransformation(String prefix,String simpleName) {
+		throw new IllegalStateException("Component declaration never contains a transformation declaration");
+	}
+	
+	@Override
+	public TransformationModel getTransformation(String simpleName) {
+		throw new IllegalStateException("Component declaration never contains a transformation declaration");
+	}
 }

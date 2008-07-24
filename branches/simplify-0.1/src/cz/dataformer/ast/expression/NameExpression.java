@@ -4,29 +4,36 @@
 package cz.dataformer.ast.expression;
 
 import cz.dataformer.ast.NodeVisitor;
-import cz.dataformer.compiler.symbol.Symbol;
+import cz.dataformer.compiler.GraphCompilerException;
 
 
 /**
- * Represents various types of names:
- * - package names in import
- * - parts of qualified names when using selectors or full qualification
+ * Represents various types of possibly qualified names 
  * 
  * @author mtomcany
  */
 public class NameExpression extends Expression {
 
-    public String name;
-    public Symbol symbol;
-
-    public NameExpression(int line, int column, String name) {
+	public String name;
+	public String prefix;
+	
+    public NameExpression(int line, int column, String prefix,String name) {
         super(line, column);
         this.name = name;
+        this.prefix = prefix;
+    }
+    
+    public NameExpression(int line, int column, String name) {
+    	this(line,column,null,name);
     }
 
     @Override
-    public void accept(NodeVisitor v) {
+    public void accept(NodeVisitor v) throws GraphCompilerException {
     	v.visit(this);
     }
 
+    public boolean isQualified() {
+    	return prefix != null;
+    }
+    
 }

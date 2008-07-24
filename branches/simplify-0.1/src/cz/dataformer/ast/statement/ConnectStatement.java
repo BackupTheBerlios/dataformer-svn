@@ -2,6 +2,7 @@ package cz.dataformer.ast.statement;
 
 import cz.dataformer.ast.NodeVisitor;
 import cz.dataformer.ast.expression.Expression;
+import cz.dataformer.compiler.GraphCompilerException;
 
 public class ConnectStatement extends Statement {
 
@@ -15,7 +16,7 @@ public class ConnectStatement extends Statement {
 	}
 	
 	@Override
-    public void accept(NodeVisitor v) {
+    public void accept(NodeVisitor v) throws GraphCompilerException {
     	v.visit(this);
     }
 

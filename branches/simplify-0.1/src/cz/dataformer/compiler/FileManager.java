@@ -2,10 +2,18 @@ package cz.dataformer.compiler;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.LinkedList;
+import java.util.StringTokenizer;
 
 public class FileManager {
 
 	private static final FileManager INSTANCE = new FileManager();
+	private LinkedList<File> sourcePath = new LinkedList<File>();
+	
+	
+	private FileManager() {
+		// TODO: need proper initialization from
+	}
 	
 	public static final FileManager getInstance() {
 		return INSTANCE;
@@ -54,14 +62,44 @@ public class FileManager {
 		}
 		
 		// check existence
-		File f = new File(pathToFile);
+		for (File sp : sourcePath) {
+			File f = new File(sp,pathToFile);
+			if (! f.exists()) {
+				return f;
+			}
+			
+		}
+
+		throw new FileNotFoundException(pathToFile);
 		
-		if (! f.exists()) {
-			throw new FileNotFoundException(pathToFile);
+	}
+
+	/**
+	 * Checks if given package exists in current source path
+	 * @param prefix
+	 * @return
+	 */
+	public File getSourcePathEntry(String prefix) {
+		String pathToFind = prefix.replace(".", "/");
+		for (File spEntry : sourcePath) {
+			File dir = new File(spEntry,pathToFind);
+			if (dir.isDirectory() && dir.exists()) {
+				return dir;
+			}
 		}
 		
-		return f;
-		
+		return null;
+	}
+
+	public void setSourcePath(String path) {
+		String delim = path.contains(";") ? ";" : ":";
+		StringTokenizer tok = new StringTokenizer(path,delim);
+		while (tok.hasMoreTokens()) {
+			File entry = new File(tok.nextToken());
+			if (entry.exists()) {
+				sourcePath.add(entry);
+			}
+		}
 	}
 	
 	

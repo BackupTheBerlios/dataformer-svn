@@ -4,6 +4,8 @@
 package cz.dataformer.ast.type;
 
 import cz.dataformer.ast.NodeVisitor;
+import cz.dataformer.ast.expression.NameExpression;
+import cz.dataformer.compiler.GraphCompilerException;
 
 
 /**
@@ -12,15 +14,16 @@ import cz.dataformer.ast.NodeVisitor;
  */
 public final class DataRecordType extends Type {
 
-    public String name;
+    public NameExpression name;
     
-    public DataRecordType(int line, int column, String name) {
+    public DataRecordType(int line, int column, NameExpression name) {
         super(line, column);
         this.name = name;
+        StringBuffer buf;
     }
     
     @Override
-    public void accept(NodeVisitor v) {
+    public void accept(NodeVisitor v) throws GraphCompilerException {
     	v.visit(this);
     }
 }

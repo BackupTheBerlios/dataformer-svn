@@ -7,6 +7,7 @@ import java.util.List;
 
 import cz.dataformer.ast.NodeVisitor;
 import cz.dataformer.ast.expression.Expression;
+import cz.dataformer.compiler.GraphCompilerException;
 
 /**
  * @author mtomcany
@@ -23,7 +24,7 @@ public final class SwitchStatement extends Statement {
     }
 
 	@Override
-	public void accept(NodeVisitor v) {
+	public void accept(NodeVisitor v) throws GraphCompilerException {
 		v.visit(this);
 	}
 }

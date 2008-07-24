@@ -1,13 +1,12 @@
 package cz.dataformer.ast.body;
 
 import cz.dataformer.ast.NodeVisitor;
-import cz.dataformer.compiler.symbol.VariableSymbol;
+import cz.dataformer.compiler.GraphCompilerException;
 
 public class Port extends BodyDeclaration {
 
 	public Modifiers modifiers;
 	public String ioType;
-	public VariableSymbol symbol;
 	
 	
 	public Port(int line, int column, Modifiers modifiers, String name, String type) {
@@ -26,7 +25,7 @@ public class Port extends BodyDeclaration {
 	}
 	
 	@Override
-    public void accept(NodeVisitor v) {
+    public void accept(NodeVisitor v) throws GraphCompilerException {
     	v.visit(this);
     }
 

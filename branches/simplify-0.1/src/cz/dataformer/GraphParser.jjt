@@ -270,9 +270,9 @@ MORE :
 Transformation Transformation() : 
 {
 	PackageDeclaration pkg;
-	List imports = null;
-	List components = null;
-	List records = null;
+	List<ImportDeclaration> imports = null;
+	List<ComponentDeclaration> components = null;
+	List<RecordDeclaration> records = null;
 	List vars = null;
 	List graph = null;
 	ComponentDeclaration cd;
@@ -302,6 +302,44 @@ Transformation Transformation() :
 	
 }
 
+ComponentDeclaration TopLevelComponentDeclaration() : {
+	PackageDeclaration pkg = null;
+	List<ImportDeclaration> imports = null;
+	Modifiers mods = null;
+	ComponentDeclaration cd = null;
+}
+{
+	pkg = Package()
+	imports = Imports()
+	mods = Modifiers()
+	cd = ComponentDeclaration(mods)
+	
+	{ 
+		return new ComponentDeclaration(cd.line,
+		cd.column,cd.modifiers,cd.name,cd.ioParams,cd.members, 
+		cd.main, cd.extend, pkg, imports); 
+	}
+}
+
+RecordDeclaration TopLevelRecordDeclaration() : {
+	PackageDeclaration pkg = null;
+	List<ImportDeclaration> imports = null;
+	Modifiers mods = null;
+	RecordDeclaration rd = null;
+	
+}
+{
+	pkg = Package()
+	imports = Imports()
+	mods = Modifiers()
+	rd = RecordDeclaration(mods)
+	
+	{ 
+		return new RecordDeclaration(
+		rd.line,rd.column,rd.modifiers,rd.name,rd.fields,
+		rd.extend,pkg,imports);
+	}
+}
 PackageDeclaration Package() :
 {
 	StringBuffer buf = new StringBuffer();
@@ -320,6 +358,7 @@ List<ImportDeclaration> Imports() :
 {
 	List ret = null;
 	StringBuffer buf = new StringBuffer();
+	String lastToken = null;
 	ImportDeclaration id= null;
 	int line,column;
 	boolean isAsterisk = false;
@@ -330,13 +369,23 @@ List<ImportDeclaration> Imports() :
 		<IDENTIFIER> { buf.append(token.image); }
 	  	(  "." 
 	  		(
-	  			<IDENTIFIER> { buf.append(".").append(token.image); }
+	  			<IDENTIFIER> { lastToken = token.image; buf.append(".").append(lastToken); }
 	  			|
 	  			"*"  { isAsterisk = true; }
 	  		)
-	  	)*
+	  	)+  // + -> imports like 'import dataformer;' make no sense
 		";"	
-		{ ret = add(ret, new ImportDeclaration(line,column,buf.toString(),isAsterisk)); } 
+		{ 
+			// separate prefix and simple name for non-star imports
+			if (! isAsterisk) {
+				buf.delete(buf.length()-lastToken.length()-1,buf.length());
+				String prefix = buf.toString();
+				ret = add(ret,new ImportDeclaration(line,column,prefix,lastToken));
+			} else {
+				String prefix = buf.toString();
+				ret = add(ret,new ImportDeclaration(line,column,prefix));
+			}
+		} 
 	)*
 	
 	{ return ret; }
@@ -624,28 +673,33 @@ Type ReferenceType():
 
 DataRecordType DataRecordType():
 {
-	StringBuffer pfx = new StringBuffer();
-	int line;
-	int column;
+	NameExpression name;
 }
 {
-  <IDENTIFIER> {line=token.beginLine; column=token.beginColumn; pfx.append(token.image); } 
-  ( LOOKAHEAD(2) "." <IDENTIFIER> { pfx.append(".").append(token.image); } )*
-  { return new DataRecordType(line,column,pfx.toString()); }
+	name = Name()
+  { return new DataRecordType(name.line,name.column,name); }
 }
 
 NameExpression Name():
-/*
- * A lookahead of 2 is required below since "Name" can be followed
- * by a ".*" when used in the context of an "ImportDeclaration".
- */
 {
 	NameExpression ret;	
+	StringBuffer buf = new StringBuffer();
+	String lastName = null;
+	int line,column;
 }
 {
-  <IDENTIFIER> { ret = new NameExpression(token.beginLine, token.beginColumn, token.image); }
-  ( LOOKAHEAD(2) "." <IDENTIFIER> { ret = new QualifiedNameExpression(token.beginLine, token.beginColumn, ret, token.image); } )*
-  { return ret; }
+  <IDENTIFIER> { line = token.beginLine; column = token.beginColumn; buf.append(token.image); }
+  ( "." <IDENTIFIER> { lastName = token.image; buf.append(".").append(token.image); } )*
+  {
+  	if (lastName != null) {
+  		// we have a "prefix.lastName" in StringBuffer, while lastName is short name
+  		buf.delete(buf.length()-lastName.length()-1,buf.length());
+  		String prefix = buf.toString();
+  		return new NameExpression(line,column,prefix,lastName);
+  	} else {
+	  	return new NameExpression(line,column,buf.toString()); 
+  	} 
+  }
 }
 
 List<NameExpression> NameList():

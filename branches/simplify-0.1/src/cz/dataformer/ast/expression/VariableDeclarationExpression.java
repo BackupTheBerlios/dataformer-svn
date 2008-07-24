@@ -9,6 +9,7 @@ import cz.dataformer.ast.NodeVisitor;
 import cz.dataformer.ast.body.Modifiers;
 import cz.dataformer.ast.body.VariableDeclarator;
 import cz.dataformer.ast.type.Type;
+import cz.dataformer.compiler.GraphCompilerException;
 
 /**
  * @author mtomcany
@@ -27,7 +28,7 @@ public final class VariableDeclarationExpression extends Expression {
     }
 
     @Override
-    public void accept(NodeVisitor v) {
+    public void accept(NodeVisitor v) throws GraphCompilerException {
     	v.visit(this);
     }
 }

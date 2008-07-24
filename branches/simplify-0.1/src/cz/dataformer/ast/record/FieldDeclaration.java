@@ -3,12 +3,11 @@ package cz.dataformer.ast.record;
 import cz.dataformer.NamedDataFormerNode;
 import cz.dataformer.ast.NodeVisitor;
 import cz.dataformer.ast.type.PrimitiveType;
-import cz.dataformer.compiler.symbol.VariableSymbol;
+import cz.dataformer.compiler.GraphCompilerException;
 
 public class FieldDeclaration extends NamedDataFormerNode {
 
 	public PrimitiveType type;
-	public VariableSymbol symbol;
 	
 	
 	public FieldDeclaration(int line, int column, PrimitiveType type, String name) {
@@ -17,7 +16,7 @@ public class FieldDeclaration extends NamedDataFormerNode {
 	}
 
 	@Override
-    public void accept(NodeVisitor v) {
+    public void accept(NodeVisitor v) throws GraphCompilerException {
     	v.visit(this);
     }
 	

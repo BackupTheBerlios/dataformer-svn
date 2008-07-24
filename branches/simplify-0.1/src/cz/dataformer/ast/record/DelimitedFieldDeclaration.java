@@ -2,6 +2,7 @@ package cz.dataformer.ast.record;
 
 import cz.dataformer.ast.NodeVisitor;
 import cz.dataformer.ast.type.PrimitiveType;
+import cz.dataformer.compiler.GraphCompilerException;
 
 public class DelimitedFieldDeclaration extends FieldDeclaration {
 
@@ -13,7 +14,7 @@ public class DelimitedFieldDeclaration extends FieldDeclaration {
 	}
 	
 	@Override
-    public void accept(NodeVisitor v) {
+    public void accept(NodeVisitor v) throws GraphCompilerException {
     	v.visit(this);
     }
 

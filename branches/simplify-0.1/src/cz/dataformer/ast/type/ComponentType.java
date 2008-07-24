@@ -7,6 +7,7 @@ import java.util.List;
 
 import cz.dataformer.ast.NodeVisitor;
 import cz.dataformer.ast.expression.NameExpression;
+import cz.dataformer.compiler.GraphCompilerException;
 
 
 /**
@@ -26,7 +27,7 @@ public final class ComponentType extends Type {
     }
     
     @Override
-    public void accept(NodeVisitor v) {
+    public void accept(NodeVisitor v) throws GraphCompilerException {
     	v.visit(this);
     }
 }

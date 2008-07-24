@@ -6,27 +6,33 @@ import cz.dataformer.DataFormerNode;
 import cz.dataformer.ParseException;
 import cz.dataformer.Token;
 import cz.dataformer.ast.ComponentDeclaration;
+import cz.dataformer.ast.ImportDeclaration;
 import cz.dataformer.ast.body.Port;
 import cz.dataformer.ast.expression.Expression;
 import cz.dataformer.ast.expression.FieldAccessExpression;
+import cz.dataformer.ast.expression.NameExpression;
 import cz.dataformer.ast.record.FieldDeclaration;
 import cz.dataformer.ast.record.RecordDeclaration;
 import cz.dataformer.ast.type.IOTypeParameter;
 import cz.dataformer.ast.type.Type;
-import cz.dataformer.compiler.symbol.TypeSymbol;
 
 public class ProblemReporter {
 
 	private static final ProblemReporter INSTANCE = new ProblemReporter();
 
 	private LinkedList<ProblemMessage> messages = new LinkedList<ProblemMessage>();
+	private String currentFile;
+	
 	
 	private final class ProblemMessage {
+		private final String file;
 		private final int line;
 		private final int column;
 		private final String message;
 		
+		
 		public ProblemMessage(final int line, final int column, final String message) {
+			this.file = currentFile;
 			this.line = line;
 			this.column = column;
 			this.message = message;
@@ -35,6 +41,14 @@ public class ProblemReporter {
 
 	public static ProblemReporter getInstance() {
 		return INSTANCE;
+	}
+	
+	public void setFile(String file) {
+		this.currentFile = file;
+	}
+	
+	public String getFile() {
+		return this.currentFile;
 	}
 	
 	public void fieldTypeCannotBeComposite(FieldDeclaration field) {
@@ -46,24 +60,19 @@ public class ProblemReporter {
 
 	/**
 	 * File for given transformation was not found
-	 * @param err	errorneous transformation entry
 	 */
-	public void fileNotFound(XformEntry err) {
+	public void fileNotFound() {
 		ProblemMessage msg = 
-			new ProblemMessage(-1,-1,"File for transformation not found: " 
-					+	err.getFqn());
+			new ProblemMessage(-1,-1,"File not found");
 		messages.add(msg);
 	}
 
 	/**
 	 * Unable to parse given transformation file
-	 * @param entry 	errorneous transformation entry
 	 */
-	public void canNotParse(XformEntry entry, ParseException e) {
+	public void canNotParse(ParseException e) {
 		final Token tok = e.currentToken; 
-		String message = "Can't parse file: '" 
-			+ entry.getResolvedPath().getAbsolutePath() 
-			+ "'"
+		String message = "Unable to parse: " 
 			+ "\n\n"
 			+ e.getMessage();
 		
@@ -138,22 +147,41 @@ public class ProblemReporter {
 		ProblemMessage msg = new ProblemMessage(ast.line,ast.column,"Data record has no fields declared");
 		messages.add(msg);
 	}
+
+	public void recordCannotBeResolved(NameExpression name) {
+		ProblemMessage msg = new ProblemMessage(name.line,name.column,name.name + " cannot be resolved to a data record");
+		messages.add(msg);
+	}
 	
 	public void expressionNotPortReference(Expression e) {
 		ProblemMessage msg = new ProblemMessage(e.line,e.column,"Expression does not resolve to a valid port reference");
 		messages.add(msg);
 	}
 
-	public void cannotConvertType(int line, int column, TypeSymbol from, TypeSymbol to) {
-		ProblemMessage msg = new ProblemMessage(line,column,"Cannot convert " + from.getName() + " to " + to.getName());
-		messages.add(msg);
-	}
-
-	
 	public void fieldCannotBeResolved(FieldAccessExpression n) {
 		ProblemMessage msg = new ProblemMessage(n.line,n.column,"Field cannot be resolved");
 		messages.add(msg);
 	}
+
+	public void collidingSingleImport(ImportDeclaration ast, ImportDeclaration collision) {
+		ProblemMessage msg = new ProblemMessage(ast.line,ast.column,
+				"Import statement collides with another import at line " 
+				+ collision.line + " column " + collision.column);
+		messages.add(msg);
+	}
+	
+	public void recordCannotImport(ImportDeclaration ast, String illegalImportType ) {
+		ProblemMessage msg = new ProblemMessage(ast.line,ast.column,
+				"Record declaration can never import a " + illegalImportType);
+		messages.add(msg);
+	}
+
+	public void componentCannotImportTransformation(ImportDeclaration ast) {
+		ProblemMessage msg = new ProblemMessage(ast.line,ast.column,
+				"Record declaration can never import a transformation");
+		messages.add(msg);
+	}
+
 	
 	// Other API
 	
@@ -166,32 +194,25 @@ public class ProblemReporter {
 
 	public void writeErrors() {
 		if (errorCount() > 0) {
+			StringBuffer buf = new StringBuffer();
 			for (ProblemMessage msg : messages) {
-				if (msg.line > 0) {
-					if (msg.column > 0) {
-						System.out.println(msg.message + " at line " 
-								+ msg.line + " column " + msg.column);
-						continue;
-					}
-					System.out.println(msg.message + "at line "	+ msg.line);
-					continue;
+				buf.delete(0, buf.length());
+				buf.append(msg.message);
+				if (msg.file != null) {
+					buf.append(" in file " + msg.file);
 				}
-				System.out.println(msg.message);
+				if (msg.line > 0) {
+					buf.append(" at line " + msg.line);
+				}
+				if (msg.column > 0) {
+					buf.append(" column " + msg.column);
+				}
+				System.out.println(buf.toString());
 			}
 		} else {
 			System.out.println("Compiled successfully");
 		}
 	}
-
-
-
-
-
-
-
-
-
-
 
 
 	
